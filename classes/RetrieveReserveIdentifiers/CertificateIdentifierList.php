@@ -8,27 +8,6 @@ use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\UniqueArray
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifier;
 
-// get the certificate ID from the issue description
-function getRawIdentifier(string $title): ?string
-{
-    // convert whole title to lowercase
-    $title = strtolower($title);
-
-    $rawIdentifier = null;
-
-    if (strpos($title, '|') !== false) {
-        // split the title into sub-strings at separator letter: '|'
-        // store those sub-strings in the $matches array
-        preg_match('/[^|]+$/', $title, $matches);
-
-        // $matches[0] is the last sub-string so here the Certificate Identifier
-        // when no '|' would exist then it would be the whole string -> but this case is excluded because of the if statement in line 17
-        $rawIdentifier = preg_replace('/[\s]+/', '', $matches[0] ?? '');
-    }
-
-    return $rawIdentifier;
-}
-
 class CertificateIdentifierList
 {
     private UniqueArray $uniqueArray;
@@ -59,7 +38,7 @@ class CertificateIdentifierList
 
         foreach ($apiParser->getIssues() as $issue) {
             // raw identifier (can still have ranges of identifiers);
-            $rawIdentifier = getRawIdentifier($issue['title']);
+            $rawIdentifier = CertificateIdentifierList::getRawIdentifier($issue['title']);
             
             // check if the identifier is empty (either empty string or null) and not set
             // -> if so skip this identifier and move onto the next issue
@@ -73,6 +52,27 @@ class CertificateIdentifierList
 
         // return the new Register
         return $newCertificateIdentifierList;
+    }
+
+    // get the certificate ID from the issue description
+    public static function getRawIdentifier(string $title): ?string
+    {
+        // convert whole title to lowercase
+        $title = strtolower($title);
+
+        $rawIdentifier = null;
+
+        if (strpos($title, '|') !== false) {
+            // split the title into sub-strings at separator letter: '|'
+            // store those sub-strings in the $matches array
+            preg_match('/[^|]+$/', $title, $matches);
+
+            // $matches[0] is the last sub-string so here the Certificate Identifier
+            // when no '|' would exist then it would be the whole string -> but this case is excluded because of the if statement in line 17
+            $rawIdentifier = preg_replace('/[\s]+/', '', $matches[0] ?? '');
+        }
+
+        return $rawIdentifier;
     }
 
     public function appendToCertificateIdList(string $rawIdentifier): void
