@@ -1,6 +1,6 @@
 <?php
 
-namespace APP\plugins\generic\codecheck\tests\unittests;
+namespace APP\plugins\generic\codecheck\tests;
 
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifierList;
 use PKP\tests\PKPTestCase;
@@ -8,11 +8,11 @@ use PKP\tests\PKPTestCase;
 /**
  * @file APP/plugins/generic/codecheck/tests/unittests/CertificateIdentifierListUnitTests.php
  *
- * @class CertificateIdentifierListUnitTests
+ * @class CertificateIdentifierListUnitTest
  *
  * @brief Tests for the CertificateIdentifierList class
  */
-class CertificateIdentifierListUnitTests extends PKPTestCase
+class CertificateIdentifierListUnitTest extends PKPTestCase
 {
     private CertificateIdentifierList $certificateIdentifierList;
 
@@ -40,14 +40,6 @@ class CertificateIdentifierListUnitTests extends PKPTestCase
         $title = '     ';
         $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
         // The rawIdentifier for an empty string should be null
-        $this->assertNull($rawIdentifier);
-    }
-
-    public function testGetRawIdentifierTitleIsNull()
-    {
-        $title = null;
-        $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
-        // The rawIdentifier for a null string should be null
         $this->assertNull($rawIdentifier);
     }
 

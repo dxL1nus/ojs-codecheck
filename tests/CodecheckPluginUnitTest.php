@@ -1,17 +1,17 @@
 <?php
 
-namespace APP\plugins\generic\codecheck\tests\unittests;
+namespace APP\plugins\generic\codecheck\tests;
 
 use PKP\tests\PKPTestCase;
 
 /**
  * @file APP/plugins/generic/codecheck/tests/unittests/CodecheckPluginUnitTests.php
  *
- * @class CodecheckPluginUnitTests
+ * @class CodecheckPluginUnitTest
  *
  * @brief Tests for the CodecheckPlugin class
  */
-class CodecheckPluginUnitTests extends PKPTestCase
+class CodecheckPluginUnitTest extends PKPTestCase
 {
     protected function setUp(): void
 	{
