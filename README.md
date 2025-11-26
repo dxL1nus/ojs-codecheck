@@ -199,6 +199,15 @@ codecheck/
 
 If you want to contribute to this project, we kindly ask you to follow our [contribution guidelines](CONTRIBUTING.md).
 
+## Running Tests
+
+### Unit Tests
+
+To execute the unit tests, run the following command from root of the PKP Application directory:
+```bash
+lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit.xml plugins/generic/codecheck/tests/
+```
+
 ## License
 
 Copyright (c) 2025 CODECHECK Initiative
