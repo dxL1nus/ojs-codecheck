@@ -64,10 +64,26 @@ class CertificateIdentifierListUnitTest extends PKPTestCase
     public function testGetRawIdentifierTitleExpectedSecondSplitter()
     {
         $title = 'Daniel Nüst | 2025-012 |';
-        $expectedRawIdentifier = '';
+        $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
+        // The rawIdentifier should match the expected Raw Identifier
+        $this->assertNull($rawIdentifier);
+    }
+
+    public function testGetRawIdentifierTitleExpectedSecondSplitterBeforeIdentifier()
+    {
+        $title = 'Author | abc | 2025-999';
+        $expectedRawIdentifier = '2025-999';
         $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
         // The rawIdentifier should match the expected Raw Identifier
         $this->assertSame($rawIdentifier, $expectedRawIdentifier);
+    }
+
+    public function testGetRawIdentifierTitleExpectedMultipleIdentifiers()
+    {
+        $title = 'Author - 2025-001 | 2026-001 - 2026-002';
+        $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
+        // The rawIdentifier should match the expected Raw Identifier
+        $this->assertNull($rawIdentifier);
     }
 
     public function testGetRawIdentifierTitleLongExpected()
