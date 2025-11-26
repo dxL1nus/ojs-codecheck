@@ -43,10 +43,27 @@ class CertificateIdentifierListUnitTest extends PKPTestCase
         $this->assertNull($rawIdentifier);
     }
 
+    public function testGetRawIdentifierTitleHasNoSplitter()
+    {
+        $title = 'Daniel Nüst 2025-034';
+        $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
+        // The rawIdentifier for an empty string should be null
+        $this->assertNull($rawIdentifier);
+    }
+
     public function testGetRawIdentifierTitleExpectedFormat()
     {
         $title = 'Daniel Nüst | 2025-012';
         $expectedRawIdentifier = '2025-012';
+        $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
+        // The rawIdentifier should match the expected Raw Identifier
+        $this->assertSame($rawIdentifier, $expectedRawIdentifier);
+    }
+
+    public function testGetRawIdentifierTitleExpectedFormatLongRunningNumber()
+    {
+        $title = 'Daniel Nüst | 2025-123456789';
+        $expectedRawIdentifier = '2025-123456789';
         $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
         // The rawIdentifier should match the expected Raw Identifier
         $this->assertSame($rawIdentifier, $expectedRawIdentifier);
