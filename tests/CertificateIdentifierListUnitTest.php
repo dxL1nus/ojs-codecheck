@@ -3,6 +3,10 @@
 namespace APP\plugins\generic\codecheck\tests;
 
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifierList;
+use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
+use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifier;
+use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
+use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
 use PKP\tests\PKPTestCase;
 
 /**
@@ -110,5 +114,114 @@ class CertificateIdentifierListUnitTest extends PKPTestCase
         $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
         // The rawIdentifier should match the expected Raw Identifier
         $this->assertSame($rawIdentifier, $expectedRawIdentifier);
+    }
+
+    public function testFromApiWithMockApiParserWithEmptyFetchedIssues()
+    {
+        // Create a mock of the API parser
+        $apiParserMock = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+
+        // Configure fetchIssues() to do nothing (simulate successful fetch)
+        $apiParserMock->method('fetchIssues');
+
+        $identifierList = CertificateIdentifierList::fromApi($apiParserMock);
+        $actualIdentifierListString = $identifierList->toStr();
+        $expectedIdentifierListString = "Certificate Identifiers:\n";
+        $this->assertSame($actualIdentifierListString, $expectedIdentifierListString);
+    }
+
+    public function testFromApiWithMockApiParserThrowingExceptionsForFetchedIssues()
+    {
+        // Create a mock of the API parser
+        $apiParserMock = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+
+        // Configure fetchIssues() to do nothing (simulate successful fetch)
+        $apiParserMock->method('fetchIssues')
+                        ->will($this->throwException(new ApiFetchException('API failed')));;
+
+        try {
+            $identifierList = CertificateIdentifierList::fromApi($apiParserMock);
+            $this->fail('Expected ApiFetchException was not thrown');
+        } catch (ApiFetchException $e) {
+            $this->assertSame('API failed', $e->getMessage());
+        }
+
+        // Configure fetchIssues() to do nothing (simulate successful fetch)
+        $apiParserMock->method('fetchIssues')
+                        ->will($this->throwException(new NoMatchingIssuesFoundException('API failed')));;
+
+        try {
+            $identifierList = CertificateIdentifierList::fromApi($apiParserMock);
+            $this->fail('Expected NoMatchingIssuesFoundException was not thrown');
+        } catch (NoMatchingIssuesFoundException $e) {
+            $this->assertSame('API failed', $e->getMessage());
+        }
+    }
+
+    public function testFromApiWithMockApiParserWithSomeFetchedIssues()
+    {
+        // Create a mock of the API parser
+        $apiParser = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+
+        $apiParser->method('getIssues')
+              ->willReturn([
+                    ['title' => 'Daniel Nüst | 2024-012'],
+                    ['title' => 'Example Authors et al. | 2024-012/2024-013'],
+                    ['title' => 'Daniel Nüst | 2024-012 | ']
+              ]);
+
+        $identifierList = CertificateIdentifierList::fromApi($apiParser);
+        $actualIdentifierListString = $identifierList->toStr();
+        $expectedIdentifierListString = "Certificate Identifiers:\n2024-012\n2024-013\n";
+        $this->assertSame($actualIdentifierListString, $expectedIdentifierListString);
+    }
+
+    public function testFilledCertificateIdentifierListCount()
+    {
+        $identifierList = new CertificateIdentifierList();
+        $identifierList->appendToCertificateIdList('2024-012');
+        $actualIdentifierListCount = $identifierList->getNumberOfIdentifiers();
+        $expectedIdentifierListCount = 1;
+        $this->assertSame($expectedIdentifierListCount, $actualIdentifierListCount);
+    }
+
+    public function testFilledCertificateIdentifierListToStr()
+    {
+        $identifierList = new CertificateIdentifierList();
+        $identifierList->appendToCertificateIdList('2022-012');
+        $actualIdentifierListString = $identifierList->toStr();
+        $expectedIdentifierListString = "Certificate Identifiers:\n2022-012\n";
+        $this->assertSame($expectedIdentifierListString, $actualIdentifierListString);
+    }
+
+    public function testFilledCertificateIdentifierListGetNewestIdentifier()
+    {
+        $identifierList = new CertificateIdentifierList();
+        $identifierList->appendToCertificateIdList('2022-012/2022-014');
+        $actualIdentifier = $identifierList->getNewestIdentifier();
+        $expectedIdentifier = new CertificateIdentifier(2022, 14);
+        $this->assertSame($expectedIdentifier->toStr(), $actualIdentifier->toStr());
+    }
+
+    public function testFilledCertificateIdentifierListSortDesc()
+    {
+        $identifierList = new CertificateIdentifierList();
+        $identifierList->appendToCertificateIdList('2022-012/2022-014');
+        $identifierList->appendToCertificateIdList('2025-014');
+        $identifierList->sortDesc();
+        $actualIdentifierString = $identifierList->toStr();
+        $expectedIdentifierString = "Certificate Identifiers:\n2025-014\n2022-014\n2022-013\n2022-012\n";
+        $this->assertSame($expectedIdentifierString, $actualIdentifierString);
+    }
+
+    public function testFilledCertificateIdentifierListSortAsc()
+    {
+        $identifierList = new CertificateIdentifierList();
+        $identifierList->appendToCertificateIdList('2022-012/2022-014');
+        $identifierList->appendToCertificateIdList('2025-014');
+        $identifierList->sortAsc();
+        $actualIdentifierString = $identifierList->toStr();
+        $expectedIdentifierString = "Certificate Identifiers:\n2022-012\n2022-013\n2022-014\n2025-014\n";
+        $this->assertSame($expectedIdentifierString, $actualIdentifierString);
     }
 }
