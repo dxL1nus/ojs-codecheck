@@ -18,15 +18,12 @@ use PKP\tests\PKPTestCase;
  */
 class CertificateIdentifierListUnitTest extends PKPTestCase
 {
-    private CertificateIdentifierList $certificateIdentifierList;
-
     /**
      * Set up the test environment
      */
     protected function setUp(): void
 	{
 		parent::setUp();
-        $this->certificateIdentifierList = new CertificateIdentifierList();
 	}
 
 
