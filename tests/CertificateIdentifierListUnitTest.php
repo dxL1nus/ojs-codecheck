@@ -130,29 +130,29 @@ class CertificateIdentifierListUnitTest extends PKPTestCase
     public function testFromApiWithMockApiParserThrowingExceptionsForFetchedIssues()
     {
         // Create a mock of the API parser
-        $apiParserMock = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+        $apiParserMock1 = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
 
         // Configure fetchIssues() to do nothing (simulate successful fetch)
-        $apiParserMock->method('fetchIssues')
-                        ->will($this->throwException(new ApiFetchException('API failed')));;
+        $apiParserMock1->method('fetchIssues')
+                        ->will($this->throwException(new ApiFetchException('API failed')));
 
-        try {
-            $identifierList = CertificateIdentifierList::fromApi($apiParserMock);
-            $this->fail('Expected ApiFetchException was not thrown');
-        } catch (ApiFetchException $e) {
-            $this->assertSame('API failed', $e->getMessage());
-        }
+        $this->expectException(ApiFetchException::class);
+        $this->expectExceptionMessage('API failed');
+
+        CertificateIdentifierList::fromApi($apiParserMock1);
+
+        // Create a mock of the API parser
+        $apiParserMock2 = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
 
         // Configure fetchIssues() to do nothing (simulate successful fetch)
-        $apiParserMock->method('fetchIssues')
+        $apiParserMock2->method('fetchIssues')
                         ->will($this->throwException(new NoMatchingIssuesFoundException('API failed')));;
 
-        try {
-            $identifierList = CertificateIdentifierList::fromApi($apiParserMock);
-            $this->fail('Expected NoMatchingIssuesFoundException was not thrown');
-        } catch (NoMatchingIssuesFoundException $e) {
-            $this->assertSame('API failed', $e->getMessage());
-        }
+
+        $this->expectException(NoMatchingIssuesFoundException::class);
+        $this->expectExceptionMessage('API failed');
+
+        CertificateIdentifierList::fromApi($apiParserMock2);
     }
 
     public function testFromApiWithMockApiParserWithSomeFetchedIssues()

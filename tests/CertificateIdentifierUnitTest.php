@@ -5,16 +5,14 @@ namespace APP\plugins\generic\codecheck\tests;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifierList;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifier;
-use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
-use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
 use PKP\tests\PKPTestCase;
 
 /**
- * @file APP/plugins/generic/codecheck/tests/unittests/CertificateIdentifierListUnitTests.php
+ * @file APP/plugins/generic/codecheck/tests/unittests/CertificateIdentifierUnitTests.php
  *
- * @class CertificateIdentifierListUnitTest
+ * @class CertificateIdentifierUnitTest
  *
- * @brief Tests for the CertificateIdentifierList class
+ * @brief Tests for the CertificateIdentifier class
  */
 class CertificateIdentifierUnitTest extends PKPTestCase
 {

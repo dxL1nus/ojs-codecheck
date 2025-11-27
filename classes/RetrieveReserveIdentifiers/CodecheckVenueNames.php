@@ -10,12 +10,12 @@ class CodecheckVenueNames
 {
     private UniqueArray $uniqueArray;
 
-    function __construct()
+    function __construct(?CodecheckRegisterGithubIssuesApiParser $apiCaller = null)
     {
         // Initialize unique Array
         $this->uniqueArray = new UniqueArray();
 
-        $apiCaller = new CodecheckRegisterGithubIssuesApiParser();
+        $apiCaller = $apiCaller ?? new CodecheckRegisterGithubIssuesApiParser();
 
         // fetch CODECHECK Certificate GitHub Labels
         try {
@@ -24,7 +24,6 @@ class CodecheckVenueNames
             // TODO: Implement that the user gets notified, that the fetching of the Labels didn't work
             error_log($e);
             throw $e;
-            return;
         }
         // get Labels from API Caller
         $labels = $apiCaller->getLabels();
