@@ -23,9 +23,9 @@ class CodecheckRegisterGithubIssuesApiParser
     private UniqueArray $labels;
     private $client;
 
-    function __construct()
+    function __construct(?Client $client = null)
     {
-        $this->client = new Client();
+        $this->client = $client ?? new Client();
         $this->labels = new UniqueArray();
     }
 
