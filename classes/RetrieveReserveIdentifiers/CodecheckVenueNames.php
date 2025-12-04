@@ -2,7 +2,7 @@
 namespace APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers;
 
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\UniqueArray;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
+use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\JsonApiCaller;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckVenueTypes;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 
@@ -13,13 +13,13 @@ class CodecheckVenueNames
     /**
      * Initializes a new List of all CODECHECK Venue Names
      */
-    function __construct(?CodecheckRegisterGithubIssuesApiParser $apiCaller = null)
+    function __construct(?JsonApiCaller $apiCaller = null)
     {
         // Initialize unique Array
         $this->uniqueArray = new UniqueArray();
 
         // Intialize API caller
-        $jsonApiCaller = new JsonApiCaller("https://codecheck.org.uk/register/venues/index.json");
+        $jsonApiCaller = $apiCaller ?? new JsonApiCaller("https://codecheck.org.uk/register/venues/index.json");
         // fetch CODECHECK Type data
         try {
             $jsonApiCaller->fetch();

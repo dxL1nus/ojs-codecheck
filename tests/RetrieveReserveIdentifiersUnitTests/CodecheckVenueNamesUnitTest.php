@@ -2,7 +2,7 @@
 
 namespace APP\plugins\generic\codecheck\tests;
 
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
+use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\JsonApiCaller;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckVenueNames;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\UniqueArray;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
@@ -28,28 +28,28 @@ class CodecheckVenueNamesUnitTest extends PKPTestCase
     public function testVenueNames()
     {
         // Create a mock of the API parser
-        $apiParserMock = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+        $apiParserMock = $this->createMock(JsonApiCaller::class);
 
         // Mock fetchLabels() so it does nothing
-        $apiParserMock->method('fetchLabels');
+        $apiParserMock->method('fetch');
 
         // Mock getLabels() to return a UniqueArray with some mock labels
-        $mockLabels = UniqueArray::from(['check-nl', 'lifecycle journal']);
-        $apiParserMock->method('getLabels')->willReturn($mockLabels);
+        $mockLabels = [["Issue label" => 'id assigned'], ["Issue label" => 'preprint'], ["Issue label" => 'check-nl'], ["Issue label" => 'lifecycle journal']];
+        $apiParserMock->method('getData')->willReturn($mockLabels);
 
         // Inject the mock into the constructor
         $venueNames = new CodecheckVenueNames($apiParserMock);
 
-        $this->assertSame($venueNames->get()->toArray(), ['check-nl', 'lifecycle journal']);
+        $this->assertSame($venueNames->get()->toArray(), ['preprint', 'check-nl', 'lifecycle journal']);
     }
 
     public function testVenueNamesApiException()
     {
         // Create a mock of the API parser
-        $apiParserMock = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+        $apiParserMock = $this->createMock(JsonApiCaller::class);
 
         // Mock fetchLabels() so it does nothing
-        $apiParserMock->method('fetchLabels')
+        $apiParserMock->method('fetch')
                         ->will($this->throwException(new ApiFetchException('API failed')));
 
         $this->expectException(ApiFetchException::class);
