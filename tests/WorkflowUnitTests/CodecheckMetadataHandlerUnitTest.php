@@ -22,6 +22,14 @@ class CodecheckMetadataHandlerUnitTest extends PKPTestCase
     protected function setUp(): void
 	{
 		parent::setUp();
+
+        /** mock GitHub client */
+        $client = $this->createMock(\Github\Client::class);
+
+
+        $request = new Request();
+
+        $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request, $client);
 	}
 
     public function testImportMetadataFromGithub()
@@ -74,5 +82,12 @@ class CodecheckMetadataHandlerUnitTest extends PKPTestCase
         $this->assertTrue($actualMetadataReturnArray["success"]);
         $this->assertEquals($actualMetadataReturnArray["repository"], $repositoryUrl);
         $this->assertEquals($actualMetadataReturnArray["metadata"], ["test" => "yaml"]);
+    }
+
+    public function testImportMetadataFromZenodo()
+    {
+        $repository = 'https://zenodo.org/records/14900193';
+        $actualMetadataReturnArray = $this->codecheckMetadataHandler->importMetadataFromZenodo($repository);
+        $this->assertCount(3, $actualMetadataReturnArray);
     }
 }
