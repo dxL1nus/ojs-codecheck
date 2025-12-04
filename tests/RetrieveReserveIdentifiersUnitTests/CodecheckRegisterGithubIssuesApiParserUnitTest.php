@@ -4,6 +4,7 @@ namespace APP\plugins\generic\codecheck\tests;
 
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifier;
+use APP\plugins\generic\codecheck\classes\Exceptions\GithubUrlParseException;
 use PKP\tests\PKPTestCase;
 
 /**
@@ -163,5 +164,77 @@ class CodecheckRegisterGithubIssuesApiParserUnitTest extends PKPTestCase
             'https://github.com/codecheckers/testing-dev-register/issues/123',
             $url
         );
+    }
+
+    public function testParseGithubUrlNormalRepoUrl() {
+        $owner = 'codecheckers';
+        $repo = 'certificate-2025-029';
+        $url = 'https://github.com/' . $owner . '/' . $repo;
+        $githubUrlParts = CodecheckRegisterGithubIssuesApiParser::parseGithubUrl($url);
+        $expectedUrlParts = [
+            'owner' => $owner,
+            'repo'  => $repo,
+            'ref'   => 'main', // default branch
+            'path'  => '',     // repo root
+        ];
+        $this->assertCount(count($expectedUrlParts), $githubUrlParts);
+        $this->assertEquals($expectedUrlParts, $githubUrlParts);
+    }
+
+    public function testParseGithubUrlNormalRepoUrlWithSlash() {
+        $owner = 'codecheckers';
+        $repo = 'certificate-2025-029';
+        $url = 'https://github.com/' . $owner . '/' . $repo . '/';
+        $githubUrlParts = CodecheckRegisterGithubIssuesApiParser::parseGithubUrl($url);
+        $expectedUrlParts = [
+            'owner' => $owner,
+            'repo'  => $repo,
+            'ref'   => 'main', // default branch
+            'path'  => '',     // repo root
+        ];
+        $this->assertCount(count($expectedUrlParts), $githubUrlParts);
+        $this->assertEquals($expectedUrlParts, $githubUrlParts);
+    }
+
+    public function testParseGithubUrlWithBlob() {
+        $owner = 'codecheckers';
+        $repo = 'lifecycle-journal-codechecks';
+        $branch = 'main';
+        $folder = '7';
+        $url = 'https://github.com/' . $owner . '/' . $repo . '/blob/' . $branch . '/' . $folder;
+        $githubUrlParts = CodecheckRegisterGithubIssuesApiParser::parseGithubUrl($url);
+        $expectedUrlParts = [
+            'owner' => $owner,
+            'repo'  => $repo,
+            'ref'   => $branch, // default branch
+            'path'  => $folder,     // repo root
+        ];
+        $this->assertCount(count($expectedUrlParts), $githubUrlParts);
+        $this->assertEquals($expectedUrlParts, $githubUrlParts);
+    }
+
+    public function testParseGithubUrlWithBlobWithSlash() {
+        $owner = 'codecheckers';
+        $repo = 'lifecycle-journal-codechecks';
+        $branch = 'main';
+        $folder = '7';
+        $url = 'https://github.com/' . $owner . '/' . $repo . '/blob/' . $branch . '/' . $folder . '/';
+        $githubUrlParts = CodecheckRegisterGithubIssuesApiParser::parseGithubUrl($url);
+        $expectedUrlParts = [
+            'owner' => $owner,
+            'repo'  => $repo,
+            'ref'   => $branch, // default branch
+            'path'  => $folder,     // repo root
+        ];
+        $this->assertCount(count($expectedUrlParts), $githubUrlParts);
+        $this->assertEquals($expectedUrlParts, $githubUrlParts);
+    }
+
+    public function testParseGithubUrlThrowException() {
+        $url = 'https://wrong_url.com/';
+        // Expect an Exception
+        $this->expectException(GithubUrlParseException::class);
+        $this->expectExceptionMessage("Unsupported GitHub URL format: $url");
+        CodecheckRegisterGithubIssuesApiParser::parseGithubUrl($url);
     }
 }
