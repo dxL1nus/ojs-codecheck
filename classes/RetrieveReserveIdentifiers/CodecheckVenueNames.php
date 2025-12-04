@@ -10,7 +10,7 @@ class CodecheckVenueNames
 {
     private UniqueArray $uniqueArray;
 
-    function __construct(?CodecheckRegisterGithubIssuesApiParser $apiCaller = null)
+    function __construct(?CodecheckRegisterGithubIssuesApiParser $apiCaller = null, ?CodecheckVenueTypes $codecheckVenueTypes = null)
     {
         // Initialize unique Array
         $this->uniqueArray = new UniqueArray();
@@ -30,7 +30,7 @@ class CodecheckVenueNames
 
         // find all venue Types
         // TODO: Remove this once the actualy Codecheck API contains the labels/ Venue Names to fetch
-        $codecheckVenueTypes = new CodecheckVenueTypes();
+        $codecheckVenueTypes = $codecheckVenueTypes ?? new CodecheckVenueTypes();
 
         foreach($labels->toArray() as $label) {
             // If a Label is already a Venue Type it can't also be a venue Name

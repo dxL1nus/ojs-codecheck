@@ -5,7 +5,9 @@ namespace APP\plugins\generic\codecheck\tests;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckVenueNames;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\UniqueArray;
+use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\JsonApiCaller;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
+use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckVenueTypes;
 use PKP\tests\PKPTestCase;
 
 /**
@@ -27,20 +29,45 @@ class CodecheckVenueNamesUnitTest extends PKPTestCase
 
     public function testVenueNames()
     {
-        // Create a mock of the API parser
-        $apiParserMock = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+        // Mock JsonApiCaller used inside CodecheckVenueTypes
+        $jsonApiMock = $this->createMock(JsonApiCaller::class);
 
-        // Mock fetchLabels() so it does nothing
-        $apiParserMock->method('fetchLabels');
+        $jsonApiMock->expects($this->once())->method('fetch');
+        // Mocked "venue types" data returned from API
+        $jsonApiMock->method('getData')->willReturn([
+            ['Venue type' => 'journal'],
+            ['Venue type' => 'community'],
+        ]);
 
-        // Mock getLabels() to return a UniqueArray with some mock labels
-        $mockLabels = UniqueArray::from(['check-nl', 'lifecycle journal']);
-        $apiParserMock->method('getLabels')->willReturn($mockLabels);
+        // Create CodecheckVenueTypes using the mocked jonApiCaller
+        $venueTypes = new CodecheckVenueTypes($jsonApiMock);
 
-        // Inject the mock into the constructor
-        $venueNames = new CodecheckVenueNames($apiParserMock);
+        // Mock GitHub API parser for CodecheckVenueNames
+        $githubApiParserMock = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
 
-        $this->assertSame($venueNames->get()->toArray(), ['check-nl', 'lifecycle journal']);
+        $githubApiParserMock->expects($this->once())->method('fetchLabels');
+
+        // Provide labels (some are venue types, some are venue names)
+        $githubApiParserMock->method('getLabels')->willReturn(
+            UniqueArray::from([
+                'journal',
+                'lifecycle journal',
+                'community',
+                'check-nl',
+                'preprint',
+                'development',
+            ])
+        );
+
+        // Create the tested CodecheckVenueNames class with both mocked dependencies
+        $venueNames = new CodecheckVenueNames($githubApiParserMock, $venueTypes);
+
+        $result = $venueNames->get()->toArray();
+
+        $this->assertEquals(
+            ['lifecycle journal', 'check-nl', 'preprint'],
+            $result
+        );
     }
 
     public function testVenueNamesApiException()
