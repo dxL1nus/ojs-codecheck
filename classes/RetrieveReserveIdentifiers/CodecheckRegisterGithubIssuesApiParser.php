@@ -27,9 +27,9 @@ class CodecheckRegisterGithubIssuesApiParser
     /**
      * Initializes a new CODECHECK GitHub Register Api Parser (initialize the GitHub Client and a new unique Array)
      */
-    function __construct()
+    function __construct(?Client $client = null)
     {
-        $this->client = new Client();
+        $this->client = $client ?? new Client();
         $this->labels = new UniqueArray();
     }
 

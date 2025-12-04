@@ -17,10 +17,11 @@ class CodecheckMetadataHandler
     /**
      * `CodecheckMetadataHandler`
      * @param \APP\core\Request $request The API Request
+     * @param \Github\Client $client The GitHub API client
      */
-    public function __construct(Request $request)
+    public function __construct(Request $request, Client $client)
     {
-        $this->client = new Client();
+        $this->client = $client;
         $this->submissionId = $request->getUserVar('submissionId');
     }
 

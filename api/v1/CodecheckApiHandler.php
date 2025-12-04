@@ -5,6 +5,7 @@ namespace APP\plugins\generic\codecheck\api\v1;
 use PKP\security\Role;
 use APP\plugins\generic\codecheck\api\v1\JsonResponse;
 use APP\core\Request;
+use Github\Client;
 
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
@@ -39,7 +40,7 @@ class CodecheckApiHandler
     {
         $this->response = new JsonResponse();
 
-        $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request);
+        $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request, new Client());
 
         $this->roles = [
             Role::ROLE_ID_MANAGER,
