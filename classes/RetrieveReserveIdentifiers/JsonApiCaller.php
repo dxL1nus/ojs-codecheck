@@ -10,6 +10,11 @@ class JsonApiCaller
     private array $jsonData = [];
     private $fetcher;
 
+    /**
+     * Initializes the Caller for the CODECHECK JSON Api
+     * 
+     * @param string $url The URL the Api Caller should fetch from
+     */
     function __construct(string $url, ?callable $fetcher = null)
     {
         $this->url = $url;
@@ -17,6 +22,9 @@ class JsonApiCaller
         $this->fetcher = $fetcher ?? fn ($url) => file_get_contents($url);
     }
 
+    /**
+     * This function fetches all the data from the given URL
+     */
     public function fetch()
     {
         // Fetch JSON from API
@@ -31,6 +39,11 @@ class JsonApiCaller
         $this->jsonData = json_decode($response, true);
     }
 
+    /**
+     * Gets the fetched JSON Data
+     * 
+     * @return array Returns the fetched and json decoded data from the API
+     */
     public function getData(): array
     {
         return $this->jsonData;

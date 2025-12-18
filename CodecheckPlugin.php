@@ -7,6 +7,8 @@ use APP\plugins\generic\codecheck\classes\FrontEnd\ArticleDetails;
 use APP\plugins\generic\codecheck\classes\Settings\Actions;
 use APP\plugins\generic\codecheck\classes\migration\CodecheckSchemaMigration;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
+use APP\plugins\generic\codecheck\classes\Submission\Schema;
+use APP\plugins\generic\codecheck\classes\Submission\SubmissionWizardHandler;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
 use PKP\components\forms\FieldOptions;
@@ -34,10 +36,6 @@ class CodecheckPlugin extends GenericPlugin
             $articleDetails = new ArticleDetails($this);
             Hook::add('Templates::Article::Details', $articleDetails->addCodecheckInfo(...));
 
-            Hook::add('Schema::get::submission', $this->addOptInToSchema(...));
-            Hook::add('Form::config::before', $this->addOptInCheckbox(...));
-            Hook::add('Submission::edit', $this->saveOptIn(...));
-
             Hook::add('Submission::validate', $this->saveWizardFieldsFromRequest(...));
             // Add hook for Ajax API calls
             Hook::add('Dispatcher::dispatch', [$this, 'setupAPIHandler']);
@@ -45,24 +43,37 @@ class CodecheckPlugin extends GenericPlugin
             Hook::add('TemplateManager::display', $this->callbackTemplateManagerDisplay(...));
         }
 
+            // Opt-in checkbox on submission start
+            Hook::add('Schema::get::submission', $this->addOptInToSchema(...));
+            Hook::add('Form::config::before', $this->addOptInCheckbox(...));
+            Hook::add('Submission::edit', $this->saveOptIn(...));
+            
+            // Wizard fields schema
+            $codecheckSchema = new Schema();
+            Hook::add('Schema::get::publication', function($hookName, $args) use ($codecheckSchema) {
+                return $codecheckSchema->addToSchemaPublication($hookName, $args);
+            });
+
+            // Wizard template handlers
+            $codecheckWizard = new SubmissionWizardHandler($this);
+            Hook::add('TemplateManager::display', function($hookName, $params) use ($codecheckWizard) {
+                return $codecheckWizard->addToSubmissionWizardSteps($hookName, $params);
+            });
+            Hook::add('Template::SubmissionWizard::Section', function($hookName, $params) use ($codecheckWizard) {
+                return $codecheckWizard->addToSubmissionWizardTemplate($hookName, $params);
+            });
+            Hook::add('Template::SubmissionWizard::Section::Review', function($hookName, $params) use ($codecheckWizard) {
+                return $codecheckWizard->addToSubmissionWizardReviewTemplate($hookName, $params);
+            });
+            
+            // Save wizard fields on validation
+            Hook::add('Submission::validate', $this->saveWizardFieldsFromRequest(...));
+            
+            // Workflow state
+            Hook::add('TemplateManager::display', $this->callbackTemplateManagerDisplay(...));
+
         return $success;
     }
-
-    /*public function setupAPIHandler($hookName, $params)
-    {
-        $route = $params[0];
-        $apiRoute = $params[1];
-
-        error_log("[CodecheckPlugin] LoadHandler called for: $route, $apiRoute");
-
-        if ($route === 'codecheck_api') {
-            $handler = new CodecheckAPIHandler($apiRoute, file_get_contents('php://input'));
-            $handler->serveApiRoute();
-            return true;
-        }
-
-        return false;
-    }*/
     
     public function setupAPIHandler(string $hookName, array $args): void
     {
@@ -75,7 +86,7 @@ class CodecheckPlugin extends GenericPlugin
 
         if (str_contains($request->getRequestPath(), 'api/v1/codecheck')) {
             error_log("[CODECHECK Plugin] Instanciating the CODECHECK APIHandler");
-            $apiHandler = new CodecheckApiHandler($request, $args);
+            $apiHandler = new CodecheckApiHandler($request);
             error_log("[CODECHECK Plugin] API request: " . $request->getRequestPath() . "\n");
         }
 
@@ -171,7 +182,9 @@ class CodecheckPlugin extends GenericPlugin
                 'options' => [
                     [
                         'value' => 1, 
-                        'label' => __('plugins.generic.codecheck.optIn.description') . ' <a href="https://codecheck.org.uk/" target="_blank">CODECHECK</a>'
+                        'label' => __('plugins.generic.codecheck.optIn.description', [
+                            'codecheckLink' => '<a href="https://codecheck.org.uk/" target="_blank">CODECHECK</a>'
+                        ])
                     ]
                 ],
                 'value' => false,

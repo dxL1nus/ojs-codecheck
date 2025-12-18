@@ -104,6 +104,32 @@ This plugin follows the CODECHECK brand guidelines and integrates with OJS desig
 1. **View certificates**: Explore CODECHECK certificates on published articles
 2. **Access materials**: Links to computational materials and repositories
 
+## CODECHECK Status System
+
+The plugin tracks CODECHECK progress through a status system displayed in the review workflow.
+
+### Status Levels
+
+| Status | Badge Color | Criteria | Description |
+|--------|------------|----------|-------------|
+| **Pending** | Gray | No metadata exists | CODECHECK process has not started |
+| **In Progress** | Yellow/Warning | Metadata exists but incomplete | Codechecker is working on verification |
+| **Complete** | Green/Success | Certificate ID and check time both present | CODECHECK verification is finished |
+
+### Status Implementation
+
+The status is determined in `CodecheckReviewDisplay.vue` using the following logic:
+```javascript
+function getStatus() {
+  if (metadata.value.certificate && metadata.value.checkTime) {
+    return 'complete';
+  } else if (hasMetadata.value) {
+    return 'in-progress';
+  }
+  return 'pending';
+}
+```
+
 ## Development
 
 ### Requirements
@@ -199,6 +225,7 @@ codecheck/
 
 If you want to contribute to this project, we kindly ask you to follow our [contribution guidelines](CONTRIBUTING.md).
 
+<<<<<<< HEAD
 ## Running Tests
 
 ### Unit Tests
@@ -206,6 +233,38 @@ If you want to contribute to this project, we kindly ask you to follow our [cont
 To execute the unit tests, run the following command from root of the PKP Application directory:
 ```bash
 lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit.xml plugins/generic/codecheck/tests/
+=======
+### Api
+
+If you want to add a new Api Endpoint, please first register it inside the constructor of the CODECHECK Api Handler like this:
+
+```php
+$this->endpoints = [
+  'Your method (e.g. GET, POST, ...)' => [
+      [
+          'route' => 'your endpoint route',
+          'handler' => [$this, 'yourFunction'],
+          'roles' => $this->roles,
+      ],
+  ],
+];
+```
+
+Then define what `yourFunction()` should do when your Endpoint is called. It is important, that the function creates a JSON response.
+
+```php
+private function yourFunction(): void
+{   
+    /* Do some calculations */
+
+    // Serve your Api endpoint route
+    // success should be true or false along with a matching HTML response code like 200 or 404
+    $this->response->response([
+        'success' => true,
+        'payload' => $test,
+    ], 200);
+}
+>>>>>>> feature/ui-retrieve-reserve-identifiers
 ```
 
 ## License

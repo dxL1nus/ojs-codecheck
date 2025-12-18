@@ -10,29 +10,34 @@ class CodecheckVenueNames
 {
     private UniqueArray $uniqueArray;
 
-    function __construct(?CodecheckRegisterGithubIssuesApiParser $apiCaller = null, ?CodecheckVenueTypes $codecheckVenueTypes = null)
+    /**
+     * Initializes a new List of all CODECHECK Venue Names
+     */
+    function __construct(?JsonApiCaller $apiCaller = null, ?CodecheckVenueTypes $codecheckVenueTypes = null)
     {
         // Initialize unique Array
         $this->uniqueArray = new UniqueArray();
 
-        $apiCaller = $apiCaller ?? new CodecheckRegisterGithubIssuesApiParser();
-
         // fetch CODECHECK Certificate GitHub Labels
+        // Intialize API caller
+        $jsonApiCaller = $apiCaller ?? new JsonApiCaller("https://codecheck.org.uk/register/venues/index.json");
+        // fetch CODECHECK Type data
         try {
-            $apiCaller->fetchLabels();
+            $jsonApiCaller->fetch();
         } catch (ApiFetchException $e) {
             // TODO: Implement that the user gets notified, that the fetching of the Labels didn't work
             error_log($e);
             throw $e;
         }
-        // get Labels from API Caller
-        $labels = $apiCaller->getLabels();
+        // get json Data from API Caller
+        $data = $jsonApiCaller->getData();
 
         // find all venue Types
         // TODO: Remove this once the actualy Codecheck API contains the labels/ Venue Names to fetch
         $codecheckVenueTypes = $codecheckVenueTypes ?? new CodecheckVenueTypes();
 
-        foreach($labels->toArray() as $label) {
+        foreach($data as $venue) {
+            $label = $venue["Issue label"];
             // If a Label is already a Venue Type it can't also be a venue Name
             // Therefore this Label has to be skipped
             if($codecheckVenueTypes->get()->contains($label) || $label == "id assigned" || $label == "development") {
@@ -43,6 +48,11 @@ class CodecheckVenueNames
         }
     }
 
+    /**
+     * Gets the List of all CODECHECK Venue Names
+     * 
+     * @return UniqueArray Returns all CODECHECK Venue Names inside a `UniqueArray`
+     */
     public function get(): UniqueArray
     {
         return $this->uniqueArray;
