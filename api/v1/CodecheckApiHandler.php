@@ -17,6 +17,7 @@ use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\Certificate
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifier;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckVenue;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
+use APP\plugins\generic\codecheck\classes\Workflow\CodecheckYamlValidator;
 
 use APP\facades\Repo;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +92,11 @@ class CodecheckApiHandler
                 [
                     'route' => 'loadMetadataFromRepository',
                     'handler' => [$this, 'loadMetadataFromRepository'],
+                    'roles' => $this->roles,
+                ],
+                [
+                    'route' => 'validateYamlStructure',
+                    'handler' => [$this, 'validateYamlStructure'],
                     'roles' => $this->roles,
                 ],
             ],
@@ -652,5 +658,37 @@ class CodecheckApiHandler
             'yaml' => $yaml,
             'filename' => 'codecheck.yml'
         ], 200);
+    }
+
+    /**
+     * This function validates the structure of a Yaml file
+     * 
+     * @return void
+     */
+    public function validateYamlStructure(): void
+    {
+        $postParams = json_decode(file_get_contents('php://input'), true);
+        $yamlContent = $postParams["yaml"];
+
+        error_log("[CODECHECK Api Handler] YAML structure will be validated now.");
+
+        $yamlValidator = new CodecheckYamlValidator($yamlContent);
+        $yamlValidator->validateYaml();
+
+        error_log("[CODECHECK Api Handler] Is valid YAML: " . $yamlValidator->isValidYaml());
+
+        if($yamlValidator->isValidYaml()) {
+            $this->response->response([
+                'success' => true,
+            ], 200);
+        }
+        
+        $error_msg = $yamlValidator->getYamlParseException()->getMessage();
+        error_log("[CODECHECK Api Handler] YAML Parse Exception: " . $error_msg);
+
+        $this->response->response([
+            'success' => false,
+            'error' => $error_msg,
+        ], 500);
     }
 }

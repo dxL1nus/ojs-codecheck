@@ -104,6 +104,8 @@
   "plugins.generic.codecheck.workflow.title",
   "plugins.generic.codecheck.yaml.close",
   "plugins.generic.codecheck.yaml.download",
+  "plugins.generic.codecheck.yaml.invalid",
   "plugins.generic.codecheck.yaml.previewTitle",
+  "plugins.generic.codecheck.yaml.valid",
   "plugins.generic.codecheck.yamlPreviewFailed"
 ]

@@ -731,6 +731,12 @@ export default {
         return;
       }
 
+      let isValidYaml = await this.validateGeneratedYamlFile();
+
+      if (!isValidYaml) {
+        return;
+      }
+
       this.saving = true;
       this.saveMessage = '';
 
@@ -890,6 +896,7 @@ export default {
 
       return yamlContent;
     },
+
     showYamlModal(yamlContent) {
       const { useModal } = pkp.modules.useModal;
       const { openDialog } = useModal();
@@ -1121,6 +1128,44 @@ export default {
         return false;
       }
       return true;
+    },
+
+    async validateGeneratedYamlFile() {
+      const yamlContent = this.generateYamlContent();
+
+      try {
+        console.log('Validating the created codecheck.yml file');
+        
+        let apiUrl = pkp.context.apiBaseUrl;
+        apiUrl += 'codecheck';
+        apiUrl = `${apiUrl}/validateYamlStructure`;
+        
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Csrf-Token': pkp.currentUser.csrfToken
+          },
+          body: JSON.stringify({
+            yaml: yamlContent,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log(this.t('plugins.generic.codecheck.yaml.valid'), 'success');
+            return true;
+        } else {
+            console.error('Structural Validation error:', data.error);
+            this.showMessage(this.t('plugins.generic.codecheck.yaml.invalid'), 'error');
+            return false;
+        }
+      } catch (error) {
+        console.error('Structural Validation API fetch error:', error);
+        this.showMessage(this.t('plugins.generic.codecheck.yaml.invalid'), 'error');
+        return false;
+      }
     },
 
     showMessage(message, type) {
