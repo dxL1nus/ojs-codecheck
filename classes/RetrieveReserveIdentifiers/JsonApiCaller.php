@@ -6,17 +6,20 @@ use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 
 class JsonApiCaller
 {
-    private $url;
-    private $jsonData = [];
+    private string $url;
+    private array $jsonData = [];
+    private $fetcher;
 
     /**
      * Initializes the Caller for the CODECHECK JSON Api
      * 
      * @param string $url The URL the Api Caller should fetch from
      */
-    function __construct(string $url)
+    function __construct(string $url, ?callable $fetcher = null)
     {
         $this->url = $url;
+
+        $this->fetcher = $fetcher ?? fn ($url) => file_get_contents($url);
     }
 
     /**
@@ -25,7 +28,7 @@ class JsonApiCaller
     public function fetch()
     {
         // Fetch JSON from API
-        $response = file_get_contents($this->url);
+        $response = call_user_func($this->fetcher, $this->url);
 
         // throw error if no data was fetched from API
         if ($response === FALSE) {
