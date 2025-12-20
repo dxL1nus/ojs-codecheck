@@ -11,7 +11,7 @@ use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundExcept
 use PKP\tests\PKPTestCase;
 
 /**
- * @file APP/plugins/generic/codecheck/tests/unittests/CodecheckRegisterGithubIssuesApiParserUnitTest.php
+ * @file APP/plugins/generic/codecheck/tests/RetrieveReserveIdentifiersUnitTests/CodecheckRegisterGithubIssuesApiParserUnitTest.php
  *
  * @class CodecheckRegisterGithubIssuesApiParserUnitTest
  *

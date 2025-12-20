@@ -7,7 +7,7 @@ use PKP\tests\PKPTestCase;
 use \APP\core\Request;
 
 /**
- * @file APP/plugins/generic/codecheck/tests/unittests/CodecheckMetadataHandlerUnitTests.php
+ * @file APP/plugins/generic/codecheck/tests/WorkflowUnitTests/CodecheckMetadataHandlerUnitTest.php
  *
  * @class CodecheckMetadataHandlerUnitTest
  *

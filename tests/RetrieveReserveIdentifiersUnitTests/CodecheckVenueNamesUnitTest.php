@@ -9,7 +9,7 @@ use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckVe
 use PKP\tests\PKPTestCase;
 
 /**
- * @file APP/plugins/generic/codecheck/tests/unittests/CodecheckVenueNamesUnitTest.php
+ * @file APP/plugins/generic/codecheck/tests/RetrieveReserveIdentifiersUnitTests/CodecheckVenueNamesUnitTest.php
  *
  * @class CodecheckVenueNamesUnitTest
  *

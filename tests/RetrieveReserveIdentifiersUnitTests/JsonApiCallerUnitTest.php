@@ -7,7 +7,7 @@ use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use PKP\tests\PKPTestCase;
 
 /**
- * @file APP/plugins/generic/codecheck/tests/unittests/JsonApiCallerUnitTest.php
+ * @file APP/plugins/generic/codecheck/tests/RetrieveReserveIdentifiersUnitTests/JsonApiCallerUnitTest.php
  *
  * @class JsonApiCallerUnitTest
  *

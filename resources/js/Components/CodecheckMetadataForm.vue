@@ -1158,7 +1158,7 @@ export default {
             return true;
         } else {
             console.error('Structural Validation error:', data.error);
-            this.showMessage(`${this.t('plugins.generic.codecheck.yaml.invalid')}${data.error}`, 'error');
+            this.showMessage(`${this.t('plugins.generic.codecheck.yaml.invalid')}\n${this.t('plugins.generic.codecheck.error')}: ${data.error}`, 'error');
             return false;
         }
       } catch (error) {
@@ -1564,6 +1564,7 @@ export default {
 }
 
 .codecheck-metadata-form .save-message {
+  white-space: pre-line;
   margin-top: 1rem;
   padding: 0.75rem;
   border-radius: 4px;

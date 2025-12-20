@@ -9,7 +9,7 @@ use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use PKP\tests\PKPTestCase;
 
 /**
- * @file APP/plugins/generic/codecheck/tests/unittests/CodecheckVenueTypesUnitTest.php
+ * @file APP/plugins/generic/codecheck/tests/RetrieveReserveIdentifiersUnitTests/CodecheckVenueTypesUnitTest.php
  *
  * @class CodecheckVenueTypesUnitTest
  *
