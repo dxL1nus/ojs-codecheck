@@ -59,19 +59,20 @@ class CertificateIdentifierUnitTest extends PKPTestCase
 
     public function testIdentifierNewUniqueIdentifierFromIdentifierList()
     {
+        $current_year = date('Y');
         // Create a mock of the API parser
         $apiParser = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
 
         $apiParser->method('getIssues')
               ->willReturn([
-                    ['title' => 'Example Authors et al. | 2025-001/2025-003'],
+                    ['title' => "Example Authors et al. | $current_year-001/$current_year-003"],
               ]);
 
         $identifierList = CertificateIdentifierList::fromApi($apiParser);
 
         $newUniqueIdentifier = CertificateIdentifier::newUniqueIdentifier($identifierList);
 
-        $this->assertSame($newUniqueIdentifier->toStr(), "2025-004");
+        $this->assertSame($newUniqueIdentifier->toStr(), "$current_year-004");
     }
 
     public function testIdentifierNewUniqueIdentifierFromIdentifierListBrandNewYear()

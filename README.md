@@ -225,7 +225,6 @@ codecheck/
 
 If you want to contribute to this project, we kindly ask you to follow our [contribution guidelines](CONTRIBUTING.md).
 
-<<<<<<< HEAD
 ### Api
 
 If you want to add a new Api Endpoint, please first register it inside the constructor of the CODECHECK Api Handler like this:
@@ -256,7 +255,8 @@ private function yourFunction(): void
         'payload' => $test,
     ], 200);
 }
-=======
+```
+
 ## Running Tests
 
 ### Unit Tests
@@ -264,7 +264,6 @@ private function yourFunction(): void
 To execute the unit tests, run the following command from root of the PKP Application directory:
 ```bash
 lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit.xml plugins/generic/codecheck/tests/
->>>>>>> feature/unit-tests
 ```
 
 ## License

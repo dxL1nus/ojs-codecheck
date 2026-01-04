@@ -5,6 +5,7 @@ namespace APP\plugins\generic\codecheck\tests;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
 use PKP\tests\PKPTestCase;
 use \APP\core\Request;
+use APP\plugins\generic\codecheck\api\v1\CurlApiClient;
 
 /**
  * @file APP/plugins/generic/codecheck/tests/unittests/CodecheckMetadataHandlerUnitTests.php
@@ -16,6 +17,7 @@ use \APP\core\Request;
 class CodecheckMetadataHandlerUnitTest extends PKPTestCase
 {
     private CodecheckMetadataHandler $codecheckMetadataHandler;
+    private CurlApiClient $curlApiClient;
     /**
      * Set up the test environment
      */
@@ -25,11 +27,10 @@ class CodecheckMetadataHandlerUnitTest extends PKPTestCase
 
         /** mock GitHub client */
         $client = $this->createMock(\Github\Client::class);
-
-
         $request = new Request();
+        $this->curlApiClient = new CurlApiClient();
 
-        $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request, $client);
+        $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request, $client, $this->curlApiClient);
 	}
 
     public function testImportMetadataFromGithub()
@@ -73,21 +74,34 @@ class CodecheckMetadataHandlerUnitTest extends PKPTestCase
 
         $request = new Request();
 
-        $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request, $client);
+        $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request, $client, $this->curlApiClient);
 
         $owner = 'codecheckers';
         $repo = 'testing-dev-register';
         $repositoryUrl = 'https://github.com/' . $owner . '/' . $repo . '/';
-        $actualMetadataReturnArray = $this->codecheckMetadataHandler->importMetadataFromGitHub($repositoryUrl);
+        $response = $this->codecheckMetadataHandler->importMetadataFromGitHub($repositoryUrl);
+        $actualMetadataReturnArray = json_decode($response->getPayload(), true);
+        $this->assertEquals($response->getHttpResponseCode(), 200);
+        $this->assertCount(3, $actualMetadataReturnArray);
         $this->assertTrue($actualMetadataReturnArray["success"]);
-        $this->assertEquals($actualMetadataReturnArray["repository"], $repositoryUrl);
-        $this->assertEquals($actualMetadataReturnArray["metadata"], ["test" => "yaml"]);
+        $this->assertEquals($repositoryUrl, $actualMetadataReturnArray["repository"]);
+        $this->assertEquals(["test" => "yaml"], $actualMetadataReturnArray["metadata"]);
     }
 
     public function testImportMetadataFromZenodo()
     {
         $repository = 'https://zenodo.org/records/14900193';
-        $actualMetadataReturnArray = $this->codecheckMetadataHandler->importMetadataFromZenodo($repository);
+        $client = $this->createMock(\Github\Client::class);
+        $request = new Request();
+        $curlApiClient = $this->createMock(CurlApiClient::class);
+        $curlApiClient->method('get')->willReturn("test: yaml");
+        $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request, $client, $curlApiClient);
+        $response = $this->codecheckMetadataHandler->importMetadataFromZenodo($repository);
+        $actualMetadataReturnArray = json_decode($response->getPayload(), true);
+        $this->assertEquals($response->getHttpResponseCode(), 200);
         $this->assertCount(3, $actualMetadataReturnArray);
+        $this->assertTrue($actualMetadataReturnArray["success"]);
+        $this->assertEquals($repository, $actualMetadataReturnArray["repository"]);
+        $this->assertEquals(["test" => "yaml"], $actualMetadataReturnArray["metadata"]);
     }
 }

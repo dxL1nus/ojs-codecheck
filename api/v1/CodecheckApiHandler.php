@@ -43,7 +43,7 @@ class CodecheckApiHandler
             'error' => 'No API Response was created.',
         ], 500);
 
-        $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request, new Client());
+        $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request, new Client(), new CurlApiClient());
 
         $this->roles = [
             Role::ROLE_ID_MANAGER,
