@@ -146,8 +146,7 @@ class CertificateIdentifierListUnitTest extends PKPTestCase
 
         // Configure fetchIssues() to do nothing (simulate successful fetch)
         $apiParserMock2->method('fetchIssues')
-                        ->will($this->throwException(new NoMatchingIssuesFoundException('API failed')));;
-
+                        ->will($this->throwException(new NoMatchingIssuesFoundException('API failed')));
 
         $this->expectException(NoMatchingIssuesFoundException::class);
         $this->expectExceptionMessage('API failed');

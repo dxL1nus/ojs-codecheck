@@ -1,6 +1,6 @@
 <?php
 
-namespace APP\plugins\generic\codecheck\classes\Exceptions;
+namespace APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions;
 
 class CurlInitException extends \Exception
 {
