@@ -347,6 +347,7 @@ class CodecheckMetadataHandler
             return new JsonResponse([
                 'success' => false,
                 'error' => $curlInitException->getMessage(),
+                'repository' => $repository,
             ], $curlInitException->getCode());
         }
         // Check if curl got a response or some form of HTTP error
@@ -354,6 +355,7 @@ class CodecheckMetadataHandler
             return new JsonResponse([
                 'success' => false,
                 'error' => $curlReadException->getMessage(),
+                'repository' => $repository,
             ], $curlReadException->getCode());
         }
     }
