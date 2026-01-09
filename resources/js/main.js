@@ -64,7 +64,7 @@ pkp.registry.storeExtend("workflow", (piniaContext) => {
     ) {
       return [
         {
-          title: "WORKFLOW: CODECHECK",
+          title: t('plugins.generic.codecheck.workflow.title'),
           component: "CodecheckMetadataForm",
           props: { 
             submission: submission,

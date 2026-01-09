@@ -207,7 +207,7 @@ msgid "plugins.generic.codecheck.saveFailed"
 msgstr "Failed to save CODECHECK metadata. Please try again."
 
 msgid "plugins.generic.codecheck.reviewTitle"
-msgstr "CODECHECK Information"
+msgstr "CODECHECK INFORMATION"
 
 msgid "plugins.generic.codecheck.status"
 msgstr "Status"

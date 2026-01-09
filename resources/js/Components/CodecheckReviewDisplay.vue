@@ -1,34 +1,34 @@
 <template>
   <div class="codecheck-review-display">
-    <h3>{{ t("plugins.generic.codecheck.reviewTitle") }}</h3>
+    <h2 class="codecheck-information-heading">{{ t("plugins.generic.codecheck.reviewTitle") }}</h2>
     
     <div v-if="submission?.codecheckOptIn" class="codecheck-info">
-      <div class="info-section">
-        <h4>{{ t("plugins.generic.codecheck.status") }}</h4>
-        <span class="status-badge" :class="statusClass">
+      <div class="codecheck-status-box">
+        <h3>{{ t("plugins.generic.codecheck.status") }}</h3>
+        <p class="status-badge" :class="statusClass">
           {{ getStatusText() }}
-        </span>
+        </p>
       </div>
 
-      <div class="info-section" v-if="hasMetadata && metadata.configVersion">
-        <h4>{{ t("plugins.generic.codecheck.review.configVersion") }}</h4>
+      <div class="codecheck-status-box" v-if="hasMetadata && metadata.configVersion">
+        <h3>{{ t("plugins.generic.codecheck.review.configVersion") }}</h3>
         <p>{{ metadata.configVersion }}</p>
       </div>
 
-      <div class="info-section" v-if="hasMetadata && metadata.publicationType">
-        <h4>{{ t("plugins.generic.codecheck.review.publicationType") }}</h4>
+      <div class="codecheck-status-box" v-if="hasMetadata && metadata.publicationType">
+        <h3>{{ t("plugins.generic.codecheck.review.publicationType") }}</h3>
         <p>{{ metadata.publicationType === 'doi' 
               ? t("plugins.generic.codecheck.review.publicationType.doi") 
               : t("plugins.generic.codecheck.review.publicationType.separate") }}</p>
       </div>
       
-      <div class="info-section" v-if="hasMetadata && metadata.certificate">
-        <h4>{{ t("plugins.generic.codecheck.identifier.label") }}</h4>
+      <div class="codecheck-status-box" v-if="hasMetadata && metadata.certificate">
+        <h3>{{ t("plugins.generic.codecheck.identifier.label") }}</h3>
         <p>{{ metadata.certificate }}</p>
       </div>
 
-      <div class="info-section" v-if="hasMetadata && metadata.manifest && metadata.manifest.length > 0">
-        <h4>{{ t("plugins.generic.codecheck.review.manifestFiles") }}</h4>
+      <div class="codecheck-status-box" v-if="hasMetadata && metadata.manifest && metadata.manifest.length > 0">
+        <h3>{{ t("plugins.generic.codecheck.review.manifestFiles") }}</h3>
         <ul>
           <li v-for="(file, index) in metadata.manifest" :key="index">
             <strong>{{ file.file }}</strong>
@@ -37,8 +37,8 @@
         </ul>
       </div>
 
-      <div class="info-section" v-if="hasMetadata && metadata.codecheckers && metadata.codecheckers.length > 0">
-        <h4>{{ t("plugins.generic.codecheck.review.codecheckers") }}</h4>
+      <div class="codecheck-status-box" v-if="hasMetadata && metadata.codecheckers && metadata.codecheckers.length > 0">
+        <h3>{{ t("plugins.generic.codecheck.review.codecheckers") }}</h3>
         <ul>
           <li v-for="(checker, index) in metadata.codecheckers" :key="index">
             {{ checker.name }}
@@ -47,23 +47,23 @@
         </ul>
       </div>
       
-      <div class="info-section" v-if="hasMetadata && metadata.repository">
-        <h4>{{ t("plugins.generic.codecheck.repositories.title") }}</h4>
+      <div class="codecheck-status-box" v-if="hasMetadata && metadata.repository">
+        <h3>{{ t("plugins.generic.codecheck.repositories.title") }}</h3>
         <a :href="metadata.repository" target="_blank">{{ metadata.repository }}</a>
       </div>
       
-      <div class="info-section" v-if="hasMetadata && metadata.checkTime">
-        <h4>{{ t("plugins.generic.codecheck.completionTime.label") }}</h4>
+      <div class="codecheck-status-box" v-if="hasMetadata && metadata.checkTime">
+        <h3>{{ t("plugins.generic.codecheck.completionTime.label") }}</h3>
         <p>{{ formatDate(metadata.checkTime) }}</p>
       </div>
       
-      <div class="info-section" v-if="hasMetadata && metadata.summary">
-        <h4>{{ t("plugins.generic.codecheck.certificate.summary") }}</h4>
+      <div class="codecheck-status-box" v-if="hasMetadata && metadata.summary">
+        <h3>{{ t("plugins.generic.codecheck.certificate.summary") }}</h3>
         <p>{{ metadata.summary }}</p>
       </div>
 
-      <div class="info-section" v-if="hasMetadata && metadata.reportUrl">
-        <h4>{{ t("plugins.generic.codecheck.review.reportUrl") }}</h4>
+      <div class="codecheck-status-box" v-if="hasMetadata && metadata.reportUrl">
+        <h3>{{ t("plugins.generic.codecheck.review.reportUrl") }}</h3>
         <a :href="metadata.reportUrl" target="_blank">{{ metadata.reportUrl }}</a>
       </div>
       
@@ -161,16 +161,17 @@ function viewFullMetadata() {
 
 <style scoped>
 .codecheck-review-display {
-  padding: var(--spacing-4);
   background: white;
   border: 1px solid var(--color-border);
   border-radius: 4px;
   margin-bottom: var(--spacing-4);
+  font-size: 16px;
 }
 
-.codecheck-review-display h3 {
+.codecheck-review-display .codecheck-information-heading {
   margin: 0 0 var(--spacing-4) 0;
   font: var(--font-xl-bold);
+  font-size: 1.25rem !important;
   color: var(--text-color-heading);
 }
 
@@ -180,37 +181,54 @@ function viewFullMetadata() {
   gap: var(--spacing-4);
 }
 
-.info-section h4 {
-  margin: 0 0 var(--spacing-2) 0;
-  font: var(--font-base-bold);
-  color: var(--text-color-heading);
+.codecheck-status-box {
+  padding: 1rem;
+  --tw-border-opacity: 1;
+  border-color: rgb(187 187 187 / var(--tw-border-opacity, 1));
+  border-width: 1px;
+  box-sizing: border-box;
+  border-style: solid;
+  pointer-events: auto;
+  color: rgba(0,0,0,0.84);
 }
 
-.info-section p {
+.codecheck-status-box h3 {
+  --tw-text-opacity: 1;
+  color: rgb(1 53 79 / var(--tw-text-opacity, 1));
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 700;
   margin: 0;
-  color: var(--text-color-primary);
+  margin-bottom: .5rem;
+  box-sizing: border-box;
+  pointer-events: auto;
+  font-family: var(--font-sans);
 }
 
-.info-section ul {
+.codecheck-status-box p {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: .875rem;
+  font-weight: 400;
+  color: rgba(0,0,0,0.84);
+}
+
+.codecheck-status-box ul {
   margin: 0;
   padding-left: var(--spacing-4);
 }
 
-.info-section a {
+.codecheck-status-box a {
   color: var(--color-primary);
   text-decoration: none;
 }
 
-.info-section a:hover {
+.codecheck-status-box a:hover {
   text-decoration: underline;
 }
 
 .status-badge {
-  display: inline-block;
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: 12px;
-  font-size: var(--font-sm);
-  font-weight: 600;
+  padding: 0;
 }
 
 .status-complete {
