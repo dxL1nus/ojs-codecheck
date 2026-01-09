@@ -11,6 +11,12 @@
     </div>
 
     <div v-else-if="dataLoaded">
+      <CodecheckReviewDisplay
+        :submission="submission"
+        :show-heading="false"
+        :show-button="false"
+        :show-submission-language="true"
+      />
       <div class="codecheck-header">
         <div class="header-content">
           <div class="version-selector">
@@ -362,10 +368,13 @@
 
 <script>
 import yaml from 'js-yaml';
+import CodecheckReviewDisplay from "./CodecheckReviewDisplay.vue"
+
 const { useLocalize } = pkp.modules.useLocalize;
 
 export default {
   name: 'CodecheckMetadataForm',
+  components: { CodecheckReviewDisplay },
   props: {
     submission: { type: Object, required: true },
     canEdit: { type: Boolean, default: true },

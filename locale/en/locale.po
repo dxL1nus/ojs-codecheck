@@ -17,6 +17,12 @@ msgstr "CODECHECK"
 msgid "plugins.generic.codecheck.description"
 msgstr "Integrates CODECHECK code execution verification into the OJS peer review workflow"
 
+msgid "plugins.generic.codecheck.locale"
+msgstr "en"
+
+msgid "plugins.generic.codecheck.language"
+msgstr "English"
+
 msgid "plugins.generic.codecheck.settings.title"
 msgstr "CODECHECK Settings"
 
@@ -40,6 +46,9 @@ msgstr "CODECHECK Information"
 
 msgid "plugins.generic.codecheck.submission.description"
 msgstr "Please provide information about your code and data repositories."
+
+msgid "plugins.generic.codecheck.submission.language.current"
+msgstr "Current Submission Language"
 
 msgid "plugins.generic.codecheck.codeRepository"
 msgstr "Code Repository URLs"

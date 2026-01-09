@@ -1,8 +1,13 @@
 <template>
   <div class="codecheck-review-display">
-    <h2 class="codecheck-information-heading">{{ t("plugins.generic.codecheck.reviewTitle") }}</h2>
+    <h2 v-if="showHeading" class="codecheck-information-heading">{{ t("plugins.generic.codecheck.reviewTitle") }}</h2>
     
     <div v-if="submission?.codecheckOptIn" class="codecheck-info">
+      <div v-if="showSubmissionLanguage" class="submission-language">
+        <span>{{ t("plugins.generic.codecheck.submission.language.current") }}:</span>
+        <span class="submission-language-name">{{ t("plugins.generic.codecheck.language") }}</span>
+      </div>
+
       <div class="codecheck-status-box">
         <h3>{{ t("plugins.generic.codecheck.status") }}</h3>
         <p class="status-badge" :class="statusClass">
@@ -67,7 +72,7 @@
         <a :href="metadata.reportUrl" target="_blank">{{ metadata.reportUrl }}</a>
       </div>
       
-      <div class="actions">
+      <div v-if="showButton" class="actions">
         <pkp-button @click="viewFullMetadata">
           {{ t("plugins.generic.codecheck.viewFullMetadata") }}
         </pkp-button>
@@ -81,14 +86,22 @@
 </template>
 
 <script setup>
+import { FAILSAFE_SCHEMA } from 'js-yaml';
 import { computed } from 'vue';
 
 const { useLocalize } = pkp.modules.useLocalize;
 const { t } = useLocalize();
 
 const props = defineProps({
-  submission: { type: Object, required: true }
+  submission: { type: Object, required: true },
+  showHeading: { type: Boolean, required: false, default: true },
+  showButton: { type: Boolean, required: false, default: true },
+  showSubmissionLanguage: { type: Boolean, required: false, default: false }
 });
+
+const showHeading = props.showHeading;
+const showButton = props.showButton;
+const showSubmissionLanguage = props.showSubmissionLanguage;
 
 const metadata = computed(() => {
   if (props.submission.codecheckMetadata) {
@@ -179,6 +192,21 @@ function viewFullMetadata() {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
+}
+
+.codecheck-info .submission-language span {
+  font-size: .875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+  font-family: var(--font-sans);
+  color: rgba(0,0,0,0.84);
+}
+
+.codecheck-info .submission-language span.submission-language-name {
+  --tw-text-opacity: 1;
+  font-weight: 700 !important;
+  color: rgb(1 53 79 / var(--tw-text-opacity, 1)) !important;
+  margin-left: .25rem;
 }
 
 .codecheck-status-box {
