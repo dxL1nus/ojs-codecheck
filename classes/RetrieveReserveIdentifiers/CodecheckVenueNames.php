@@ -13,11 +13,12 @@ class CodecheckVenueNames
     /**
      * Initializes a new List of all CODECHECK Venue Names
      */
-    function __construct(?JsonApiCaller $apiCaller = null)
+    function __construct(?JsonApiCaller $apiCaller = null, ?CodecheckVenueTypes $codecheckVenueTypes = null)
     {
         // Initialize unique Array
         $this->uniqueArray = new UniqueArray();
 
+        // fetch CODECHECK Certificate GitHub Labels
         // Intialize API caller
         $jsonApiCaller = $apiCaller ?? new JsonApiCaller("https://codecheck.org.uk/register/venues/index.json");
         // fetch CODECHECK Type data
@@ -33,7 +34,7 @@ class CodecheckVenueNames
 
         // find all venue Types
         // TODO: Remove this once the actualy Codecheck API contains the labels/ Venue Names to fetch
-        $codecheckVenueTypes = new CodecheckVenueTypes();
+        $codecheckVenueTypes = $codecheckVenueTypes ?? new CodecheckVenueTypes();
 
         foreach($data as $venue) {
             $label = $venue["Issue label"];

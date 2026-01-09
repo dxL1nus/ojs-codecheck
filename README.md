@@ -266,6 +266,11 @@ To execute the unit tests, run the following command from root of the PKP Applic
 lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit.xml plugins/generic/codecheck/tests/
 ```
 
+If you want to visualize the test coverage, open the following file which is created during each test run.
+```bash
+/var/www/html/ojs-tests/lib/pkp/tests/results/index.html
+```
+
 ## License
 
 Copyright (c) 2025 CODECHECK Initiative

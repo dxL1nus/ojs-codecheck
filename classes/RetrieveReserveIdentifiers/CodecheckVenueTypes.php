@@ -12,12 +12,12 @@ class CodecheckVenueTypes
     /**
      * Initializes a new List of all CODECHECK Venue Types
      */
-    function __construct()
+    function __construct(?JsonApiCaller $jsonApiCaller = null)
     {
         // Initialize unique Array
         $this->uniqueArray = new UniqueArray();
         // Intialize API caller
-        $jsonApiCaller = new JsonApiCaller("https://codecheck.org.uk/register/venues/index.json");
+        $jsonApiCaller = $jsonApiCaller ?? new JsonApiCaller("https://codecheck.org.uk/register/venues/index.json");
         // fetch CODECHECK Type data
         try {
             $jsonApiCaller->fetch();
@@ -25,7 +25,6 @@ class CodecheckVenueTypes
             // TODO: Implement that the user gets notified, that the fetching of the Labels didn't work
             error_log($e);
             throw $e;
-            return;
         }
         // get json Data from API Caller
         $data = $jsonApiCaller->getData();

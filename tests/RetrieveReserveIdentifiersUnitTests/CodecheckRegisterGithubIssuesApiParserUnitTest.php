@@ -5,6 +5,9 @@ namespace APP\plugins\generic\codecheck\tests;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
 use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifier;
 use APP\plugins\generic\codecheck\classes\Exceptions\GithubUrlParseException;
+use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
+use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
+use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
 use PKP\tests\PKPTestCase;
 
 /**
@@ -106,17 +109,45 @@ class CodecheckRegisterGithubIssuesApiParserUnitTest extends PKPTestCase
         $this->assertContains('check-nl', $labels);
     }
 
+    public function testGithubParserFetchLabelsThrowsException()
+    {
+        $labelsApiMock = $this->createMock(\Github\Api\Issue\Labels::class);
+
+        $labelsApiMock->method('all')
+            ->will($this->throwException(new ApiFetchException('')));;
+
+        $issueApiMock = $this->createMock(\Github\Api\Issue::class);
+
+        $issueApiMock->method('labels')
+            ->willReturn($labelsApiMock);
+
+        $clientMock = $this->createMock(\Github\Client::class);
+
+        $clientMock->method('api')
+            ->with('issue')
+            ->willReturn($issueApiMock);
+
+        // Inject mock client into the parser
+        $parser = new CodecheckRegisterGithubIssuesApiParser($clientMock);
+
+        $this->expectException(ApiFetchException::class);
+        $this->expectExceptionMessage("Failed fetching the GitHub Issue Labels for the Venue Names\n");
+
+        // Execute
+        $parser->fetchLabels();
+    }
+
     public function testAddIssueCreatesIssueAndReturnsUrl()
     {
-        // --- 1. Setup environment token ---
+        // Setup environment token
         $_ENV['CODECHECK_REGISTER_GITHUB_TOKEN'] = 'testtoken123';
 
-        // --- 2. Mock CertificateIdentifier ---
+        // Mock CertificateIdentifier
         $certMock = $this->createMock(CertificateIdentifier::class);
         $certMock->method('toStr')
             ->willReturn('2025-001');
 
-        // --- 3. Mock the Issue API ---
+        // Mock the Issue API
         $issueApiMock = $this->createMock(\Github\Api\Issue::class);
 
         // Expect "create" to be called with these specific parameters
@@ -135,7 +166,7 @@ class CodecheckRegisterGithubIssuesApiParserUnitTest extends PKPTestCase
                 'html_url' => 'https://github.com/codecheckers/testing-dev-register/issues/123'
             ]);
 
-        // --- 4. Mock Client ---
+        // Mock Client
         $clientMock = $this->createMock(\Github\Client::class);
 
         // Expect authentication with the correct token
@@ -148,10 +179,10 @@ class CodecheckRegisterGithubIssuesApiParserUnitTest extends PKPTestCase
             ->with('issue')
             ->willReturn($issueApiMock);
 
-        // --- 5. Inject mock client into parser ---
+        // Inject mock client into parser
         $parser = new CodecheckRegisterGithubIssuesApiParser($clientMock);
 
-        // --- 6. Run method ---
+        // Run method
         $url = $parser->addIssue(
             $certMock,
             'institution',
@@ -159,7 +190,7 @@ class CodecheckRegisterGithubIssuesApiParserUnitTest extends PKPTestCase
             'Daniel Nüst et al.'
         );
 
-        // --- 7. Assert returned URL ---
+        // Assert returned URL
         $this->assertEquals(
             'https://github.com/codecheckers/testing-dev-register/issues/123',
             $url
@@ -236,5 +267,99 @@ class CodecheckRegisterGithubIssuesApiParserUnitTest extends PKPTestCase
         $this->expectException(GithubUrlParseException::class);
         $this->expectExceptionMessage("Unsupported GitHub URL format: $url");
         CodecheckRegisterGithubIssuesApiParser::parseGithubUrl($url);
+    }
+    
+    public function testAddIssueCreatesIssueAndThrowsException()
+    {
+        // Setup environment token
+        $_ENV['CODECHECK_REGISTER_GITHUB_TOKEN'] = 'testtoken123';
+
+        // Mock CertificateIdentifier
+        $certMock = $this->createMock(CertificateIdentifier::class);
+        $certMock->method('toStr')
+            ->willReturn('2025-001');
+
+        // Mock the Issue API
+        $issueApiMock = $this->createMock(\Github\Api\Issue::class);
+
+        // Expect "create" to be called with these specific parameters
+        $issueApiMock->expects($this->once())
+            ->method('create')
+            ->will($this->throwException(new ApiFetchException('')));;
+
+        // Mock Client
+        $clientMock = $this->createMock(\Github\Client::class);
+
+        // Expect authentication with the correct token
+        $clientMock->expects($this->once())
+            ->method('authenticate')
+            ->with('testtoken123', null, \Github\Client::AUTH_ACCESS_TOKEN);
+
+        // When "api('issue')" is called, return our mocked Issue API
+        $clientMock->method('api')
+            ->with('issue')
+            ->willReturn($issueApiMock);
+
+        // Inject mock client into parser
+        $parser = new CodecheckRegisterGithubIssuesApiParser($clientMock);
+
+        $this->expectException(ApiCreateException::class);
+        $this->expectExceptionMessage("Error while adding the new GitHub issue with the new Certificate Identifier\n");
+
+        // Run method
+        $url = $parser->addIssue(
+            $certMock,
+            'institution',
+            'check-nl',
+            'Daniel Nüst et al.'
+        );
+    }
+
+    public function testFetchIssuesThrowsApiFetchException()
+    {
+        // Mock Client
+        $clientMock = $this->createMock(\Github\Client::class);
+
+        // When "api('issue')" is called, return our mocked Issue API
+        $clientMock->method('api')
+            ->with('issue')
+            ->will($this->throwException(new ApiFetchException('')));;
+
+        // Inject mock client into parser
+        $parser = new CodecheckRegisterGithubIssuesApiParser($clientMock);
+
+        $this->expectException(ApiFetchException::class);
+        $this->expectExceptionMessage("Failed fetching the GitHub Issues\n");
+
+        // Run method
+        $parser->fetchIssues();
+    }
+
+    public function testFetchIssuesThrowsNoMatchingIssuesFoundException()
+    {
+        // Mock the Issue API
+        $issueApiMock = $this->createMock(\Github\Api\Issue::class);
+
+        // Make ->all() return NO ISSUES  
+        // This forces the "empty(allissues)" check to trigger the exception
+        $issueApiMock->method('all')->willReturn([]);
+
+        // Mock Client
+        $clientMock = $this->createMock(\Github\Client::class);
+
+        // Make ->api('issue') return our issue mock
+        $clientMock
+            ->method('api')
+            ->with('issue')
+            ->willReturn($issueApiMock);
+
+        // Inject mock client into parser
+        $parser = new CodecheckRegisterGithubIssuesApiParser($clientMock);
+
+        $this->expectException(NoMatchingIssuesFoundException::class);
+        $this->expectExceptionMessage("There was no Issue found with a '|' inside the GitHub Codecheck Register.");
+
+        // Run method
+        $parser->fetchIssues();
     }
 }
