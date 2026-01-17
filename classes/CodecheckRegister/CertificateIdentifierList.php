@@ -36,14 +36,10 @@ class CertificateIdentifierList
         // fetch API
         try {
             $codecheckGithubRegisterApiClient->fetchIssues();
-        } catch (ApiFetchException $ae) {
-            throw $ae;
-            error_log($ae);
-            return $newCertificateIdentifierList;
-        } catch (NoMatchingIssuesFoundException $me) {
-            throw $me;
-            error_log($me);
-            return $newCertificateIdentifierList;
+        } catch (ApiFetchException $apiFetchException) {
+            throw $apiFetchException;
+        } catch (NoMatchingIssuesFoundException $noMatchingIssuesFoundException) {
+            throw $noMatchingIssuesFoundException;
         }
 
         foreach ($codecheckGithubRegisterApiClient->getIssues() as $issue) {

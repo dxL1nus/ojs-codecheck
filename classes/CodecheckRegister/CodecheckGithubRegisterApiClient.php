@@ -64,12 +64,18 @@ class CodecheckGithubRegisterApiClient
                     'page'      => $issuePage,
                 ]);
             } catch (\Throwable $e) {
-                throw new ApiFetchException("Failed fetching the GitHub Issues\n" . $e->getMessage());
+                throw new ApiFetchException(
+                    "Failed fetching the GitHub Issues\n" . $e->getMessage(),
+                    $e->getCode()
+                );
             }
 
             // stop looping if no more issues exist and we haven't yet found a matching issue
             if (empty($allissues) && empty($this->issue)) {
-                throw new NoMatchingIssuesFoundException("There was no open or closed issue found with the label 'id assigned' in the GitHub Codecheck Register.");
+                throw new NoMatchingIssuesFoundException(
+                    "There was no open or closed issue found with the label 'id assigned' in the GitHub Codecheck Register.",
+                    404
+                );
             }
 
             foreach ($allissues as $issue) {
@@ -91,7 +97,10 @@ class CodecheckGithubRegisterApiClient
         try {
             $fetchedLabels = $this->client->api('issue')->labels()->all('codecheckers', $this->githubRegisterRepository);
         } catch (\Throwable $e) {
-            throw new ApiFetchException("Failed fetching the GitHub Issue Labels for the Venue Names\n" . $e->getMessage());
+            throw new ApiFetchException(
+                "Failed fetching the GitHub Issue Labels for the Venue Names: " . $e->getMessage(),
+                $e->getCode()
+            );
         }
         
         foreach($fetchedLabels as $label) {
@@ -138,7 +147,11 @@ class CodecheckGithubRegisterApiClient
                 ]
             );
         } catch (\Throwable $e) {
-    throw new ApiCreateException("Error while adding the new GitHub issue with the new Certificate Identifier: " . $certificateIdentifier->toStr() . "\n" . $e->getMessage());
+            throw new ApiCreateException(
+                "Error while adding the new GitHub issue. " . $e->getMessage(),
+                $e->getCode(),
+                $certificateIdentifier
+            );
         }
 
         return $issue['html_url'];

@@ -18,6 +18,8 @@ use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenue;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
 
 use APP\facades\Repo;
+use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
+use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
 use Illuminate\Support\Facades\DB;
 
 class CodecheckApiHandler
@@ -174,21 +176,33 @@ class CodecheckApiHandler
     {   
         try {
             $codecheckVenueTypes = new CodecheckVenueTypes();
-        } catch (ApiFetchException $e) {
+        } catch (CurlInitException $curlInitException) {
             $this->response->response([
                 'success'   => false,
-                'error'     => $e->getMessage(),
-            ], 400);
+                'error'     => $curlInitException->getMessage(),
+            ], $curlInitException->getCode());
+            return;
+        } catch (CurlReadException $curlReadException) {
+            $this->response->response([
+                'success'   => false,
+                'error'     => $curlReadException->getMessage(),
+            ], $curlReadException->getCode());
             return;
         }
 
         try {
             $codecheckVenueNames = new CodecheckVenueNames();
-        } catch (ApiFetchException $e) {
+        } catch (CurlInitException $curlInitException) {
             $this->response->response([
                 'success'   => false,
-                'error'     => $e->getMessage(),
-            ], 400);
+                'error'     => $curlInitException->getMessage(),
+            ], $curlInitException->getCode());
+            return;
+        } catch (CurlReadException $curlReadException) {
+            $this->response->response([
+                'success'   => false,
+                'error'     => $curlReadException->getMessage(),
+            ], $curlReadException->getCode());
             return;
         }
 
@@ -226,17 +240,17 @@ class CodecheckApiHandler
             // CODECHECK Register with list of all identifiers in range
             try {
                 $certificateIdentifierList = CertificateIdentifierList::fromApi($codecheckGithubRegisterApiClient);
-            } catch (ApiFetchException $ae) {
+            } catch (ApiFetchException $apiFetchException) {
                 $this->response->response([
                     'success'   => false,
-                    'error'     => $e->getMessage(),
-                ], 400);
+                    'error'     => $apiFetchException->getMessage(),
+                ], $apiFetchException->getCode());
                 return;
-            } catch (NoMatchingIssuesFoundException $me) {
+            } catch (NoMatchingIssuesFoundException $noMatchingIssuesFoundException) {
                 $this->response->response([
                     'success'   => false,
-                    'error'     => $e->getMessage(),
-                ], 400);
+                    'error'     => $noMatchingIssuesFoundException->getMessage(),
+                ], $noMatchingIssuesFoundException->getCode());
                 return;
             }
 
@@ -260,9 +274,10 @@ class CodecheckApiHandler
             } catch (ApiCreateException $e) {
                 // return an error result
                 $this->response->response([
-                    'success'   => false,
-                    'error'     => $e->getMessage(),
-                ], 400);
+                    'success'    => false,
+                    'error'      => $e->getMessage(),
+                    'identifier' => $e->getCertificateIdentifier()
+                ], $e->getCode());
                 return;
             }
 
