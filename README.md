@@ -204,7 +204,7 @@ codecheck/
 │       ├── Manage.php                  # Settings management logic
 │       └── SettingsForm.php            # Settings form handling
 ├── CodecheckPlugin.php                 # Main plugin class
-├── cypress/                            # End-to-end testing
+├── cypress/                            # End-to-end testin
 │   └── tests/
 │       └── functional/
 │           └── CodecheckPlugin.cy.js   # Cypress test suite
@@ -259,16 +259,42 @@ private function yourFunction(): void
 
 ## Running Tests
 
-### Unit Tests
+The plugin includes comprehensive test coverage for both backend PHP code and frontend Vue components.
 
-To execute the unit tests, run the following command from root of the PKP Application directory:
+### PHP Unit Tests
+
+**Option 1: Local Testing**
+
+From the plugin directory:
+```bash
+cd plugins/generic/codecheck
+php ../../../lib/pkp/lib/vendor/bin/phpunit --configuration phpunit.xml tests/
+```
+
+**Option 2: Docker/CI Environment**
+
+From the root of the OJS application directory:
 ```bash
 lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit.xml plugins/generic/codecheck/tests/
 ```
 
-If you want to visualize the test coverage, open the following file which is created during each test run.
+If you want to visualize the test coverage, open the following file which is created during each test run:
 ```bash
 /var/www/html/ojs-tests/lib/pkp/tests/results/index.html
+```
+
+**Note:** Some tests require full OJS environment and are skipped locally (database, facades, translations). They run successfully in Docker/CI.
+
+### Frontend Component Tests
+
+From the plugin directory:
+```bash
+npm run test:component
+```
+
+For interactive testing:
+```bash
+npm run test:component:open
 ```
 
 ## License
