@@ -1,13 +1,13 @@
 <?php
 
-namespace APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers;
+namespace APP\plugins\generic\codecheck\classes\CodecheckRegister;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
 use Github\Client;
 use Dotenv\Dotenv;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\UniqueArray;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifier;
+use APP\plugins\generic\codecheck\classes\DataStructures\UniqueArray;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifier;
 use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
@@ -16,20 +16,32 @@ use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
 $dotenv->load();
 
-// api call
-class CodecheckRegisterGithubIssuesApiParser
+// api client
+class CodecheckGithubRegisterApiClient
 {
     private $issues = [];
     private UniqueArray $labels;
     private $client;
+    private string $githubRegisterRepository;
+    private string $submissionID;
+    private string $journalName;
 
     /**
      * Initializes a new CODECHECK GitHub Register Api Parser (initialize the GitHub Client and a new unique Array)
+     * 
+     * @param string $githubRegisterRepository The Repository of the GitHub Register
+     * @param string $submissionID The ID of the Submission realted to the GitHub Register Issue
+     * @param mixed $journal The name of the Journal the Submission is published in
      */
-    function __construct(?Client $client = null)
+    function __construct(string $githubRegisterRepository, string $submissionID, mixed $journal, ?Client $client = null)
     {
         $this->client = $client ?? new Client();
         $this->labels = new UniqueArray();
+        $this->githubRegisterRepository = $githubRegisterRepository;
+        $this->submissionID = $submissionID;
+        $this->journalName = $journal
+                                ? $journal->getLocalizedName()
+                                : 'Unknwon Journal';
     }
 
     /**
@@ -43,9 +55,9 @@ class CodecheckRegisterGithubIssuesApiParser
 
         do {
             try {
-                $allissues = $this->client->api('issue')->all('codecheckers', 'testing-dev-register', [
+                $allissues = $this->client->api('issue')->all('codecheckers', $this->githubRegisterRepository, [
                     'state'     => 'all',          // 'open', 'closed', or 'all'
-                    'labels'    => 'id assigned',  // label
+                    'labels'    => 'id assigned',  // select only issues where there is an id assigned
                     'sort'      => 'updated',
                     'direction' => 'desc',
                     'per_page'  => $issuesToFetchPerPage, // issues that will be fetched per page
@@ -57,7 +69,7 @@ class CodecheckRegisterGithubIssuesApiParser
 
             // stop looping if no more issues exist and we haven't yet found a matching issue
             if (empty($allissues) && empty($this->issue)) {
-                throw new NoMatchingIssuesFoundException("There was no Issue found with a '|' inside the GitHub Codecheck Register.");
+                throw new NoMatchingIssuesFoundException("There was no open or closed issue found with the label 'id assigned' in the GitHub Codecheck Register.");
             }
 
             foreach ($allissues as $issue) {
@@ -77,7 +89,7 @@ class CodecheckRegisterGithubIssuesApiParser
     public function fetchLabels(): void
     {
         try {
-            $fetchedLabels = $this->client->api('issue')->labels()->all('codecheckers', 'testing-dev-register');
+            $fetchedLabels = $this->client->api('issue')->labels()->all('codecheckers', $this->githubRegisterRepository);
         } catch (\Throwable $e) {
             throw new ApiFetchException("Failed fetching the GitHub Issue Labels for the Venue Names\n" . $e->getMessage());
         }
@@ -107,10 +119,9 @@ class CodecheckRegisterGithubIssuesApiParser
         $this->client->authenticate($token, null, Client::AUTH_ACCESS_TOKEN);
 
         $repositoryOwner = 'codecheckers';
-        $repositoryName = 'testing-dev-register';
         $authorString = empty($authorString) ? 'New CODECHECK' : $authorString;
         $issueTitle = $authorString . ' | ' . $certificateIdentifier->toStr();
-        $issueBody = '';
+        $issueBody = 'Journal: `' . $this->journalName . '`<br />' . 'Submission ID: `' . $this->submissionID . '`';
         $labelStrings = ['id assigned'];
 
         $labelStrings[] = $codecheckVenueType;
@@ -119,7 +130,7 @@ class CodecheckRegisterGithubIssuesApiParser
         try {
             $issue = $this->client->api('issue')->create(
                 $repositoryOwner,
-                $repositoryName,
+                $this->githubRegisterRepository,
                 [
                     'title' => $issueTitle,
                     'body'  => $issueBody,
@@ -127,7 +138,7 @@ class CodecheckRegisterGithubIssuesApiParser
                 ]
             );
         } catch (\Throwable $e) {
-            throw new ApiCreateException("Error while adding the new GitHub issue with the new Certificate Identifier\n" . $e->getMessage());
+            throw new ApiCreateException("Error while adding the new GitHub issue with the new Certificate Identifier: " . $certificateIdentifier->toStr() . "\n" . $e->getMessage());
         }
 
         return $issue['html_url'];

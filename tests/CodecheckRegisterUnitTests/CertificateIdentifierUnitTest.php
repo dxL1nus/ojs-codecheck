@@ -2,9 +2,9 @@
 
 namespace APP\plugins\generic\codecheck\tests;
 
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifierList;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifier;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifierList;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterApiClient;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifier;
 use PKP\tests\PKPTestCase;
 
 /**
@@ -59,25 +59,28 @@ class CertificateIdentifierUnitTest extends PKPTestCase
 
     public function testIdentifierNewUniqueIdentifierFromIdentifierList()
     {
+        $year = (int) date('Y');
         // Create a mock of the API parser
-        $apiParser = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+        $apiParser = $this->createMock(CodecheckGithubRegisterApiClient::class);
 
+        $apiParser->expects($this->once())
+                    ->method('fetchIssues');
         $apiParser->method('getIssues')
               ->willReturn([
-                    ['title' => 'Example Authors et al. | 2025-001/2025-003'],
+                    ['title' => "Example Authors et al. | $year-001/$year-003"],
               ]);
 
         $identifierList = CertificateIdentifierList::fromApi($apiParser);
 
         $newUniqueIdentifier = CertificateIdentifier::newUniqueIdentifier($identifierList);
 
-        $this->assertSame($newUniqueIdentifier->toStr(), "2025-004");
+        $this->assertSame("$year-004", $newUniqueIdentifier->toStr());
     }
 
     public function testIdentifierNewUniqueIdentifierFromIdentifierListBrandNewYear()
     {
         // Create a mock of the API parser
-        $apiParser = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+        $apiParser = $this->createMock(CodecheckGithubRegisterApiClient::class);
 
         $apiParser->method('getIssues')
               ->willReturn([

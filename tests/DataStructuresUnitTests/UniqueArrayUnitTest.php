@@ -2,7 +2,7 @@
 
 namespace APP\plugins\generic\codecheck\tests;
 
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\UniqueArray;
+use APP\plugins\generic\codecheck\classes\DataStructures\UniqueArray;
 use PKP\tests\PKPTestCase;
 
 /**

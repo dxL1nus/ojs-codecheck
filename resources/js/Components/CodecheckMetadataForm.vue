@@ -263,7 +263,7 @@
             {{ t('plugins.generic.codecheck.identifier.description') }}
             <span v-if="certificateIdentifier.issueUrl"> - </span>
             <a v-if="certificateIdentifier.issueUrl" :href="certificateIdentifier.issueUrl" target="_blank">
-              View GitHub Issue
+              {{ t('plugins.generic.codecheck.identifier.viewGithubIssue') }}
             </a>
           </p>
           <div class="certificate-identifier-section">
@@ -280,7 +280,7 @@
                     class="certificate-identifier-select certificate-identifier-venue-types"
                     :disabled="isIdentifierReserved"
                 >
-                    <option disabled value="default" selected>Venue Type</option>
+                    <option disabled value="default" selected>{{ t('plugins.generic.codecheck.identifier.venue.type') }}</option>
                     <option v-for="type in certificateIdentifier.venueTypes" :key="type" :value="type">
                     {{ type }}
                     </option>
@@ -290,7 +290,7 @@
                     class="certificate-identifier-select certificate-identifier-venue-names"
                     :disabled="isIdentifierReserved"
                 >
-                    <option disabled value="default" selected>Venue Name</option>
+                    <option disabled value="default" selected>{{ t('plugins.generic.codecheck.identifier.venue.name') }}</option>
                     <option v-for="name in certificateIdentifier.venueNames" :key="name" :value="name">
                     {{ name }}
                     </option>
@@ -775,6 +775,7 @@ export default {
 
       return yamlContent;
     },
+    
     showYamlModal(yamlContent) {
       const { useModal } = pkp.modules.useModal;
       const { openDialog } = useModal();
@@ -866,7 +867,7 @@ export default {
       let apiUrl = pkp.context.apiBaseUrl + 'codecheck';
 
       try {
-          const response = await fetch(`${apiUrl}/getVenueData`, {
+          const response = await fetch(`${apiUrl}/venue`, {
               method: 'GET',
               headers: {
               'Content-Type': 'application/json',
@@ -901,10 +902,11 @@ export default {
 
       console.log(authorString);
 
+      const submissionId = this.submission.id;
       let apiUrl = pkp.context.apiBaseUrl + 'codecheck';
 
       try {
-          const response = await fetch(`${apiUrl}/reserveIdentifier`, {
+          const response = await fetch(`${apiUrl}/identifier?submissionId=${submissionId}`, {
               method: 'POST',
               headers: {
               'Content-Type': 'application/json',
@@ -922,12 +924,14 @@ export default {
               this.metadata.certificate = data.identifier;
               this.certificateIdentifier.issueUrl = data.issueUrl;
               this.$emit('update', this.metadata.certificate);
-              alert(`New identifier reserved: ${data.identifier}`);
-              console.log('New identifier reserved: ', data.identifier, data.issueUrl);
+              this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.success.message')}: ${data.identifier}`, 'success');
+              console.log('New Certificate Identifier reserved: ', data.identifier, data.issueUrl);
           } else {
-              console.error('Error:', data.error);
+              this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.fail.message')}\n${data.error}`, 'error');
+              console.error('Error while reserving the Certificate Identifier:', data.error);
           }
       } catch (error) {
+          this.showMessage(`${this.t('plugins.generic.codecheck.request.failed')}\n${error}`, 'error');
           console.error('Request failed:', error);
       }
     },
@@ -942,7 +946,7 @@ export default {
 
     showRemoveIdentifierModal() {
       if (!this.canUsePkpModal()) {
-        this.fallbackCertificateIdentifierModal();
+        this.fallbackRemoveIdentifierModal();
         return;
       }
 
@@ -950,21 +954,21 @@ export default {
       const { openDialog } = useModal();
 
       openDialog({
-        title: "Remove Certificate Identifier",
+        title: this.t('plugins.generic.codecheck.identifier.remove.modal.title'),
         message: `
           <div class="modal-form">
             <div class="modal-field">
-              <label for="repo-url" class="modal-label">Are you sure you want to remove this identifier?</label>
+              <label for="repo-url" class="modal-label">${this.t('plugins.generic.codecheck.identifier.remove.modal.areYouSureYouWantToRemoveTheIdentifier')}</label>
             </div>
           </div>
         `,
         actions: [
           {
-            label: "No",
+            label: this.t('plugins.generic.codecheck.no'),
             callback: (close) => close()
           },
           {
-            label: "Yes",
+            label: this.t('plugins.generic.codecheck.yes'),
             isPrimary: true,
             callback: (close) => {
               this.removeIdentifier(close);
@@ -974,8 +978,8 @@ export default {
       });
     },
 
-    fallbackCertificateIdentifierModal() {
-      if(confirm('Are you sure you want to remove this identifier?')) {
+    fallbackRemoveIdentifierModal() {
+      if(confirm(this.t('plugins.generic.codecheck.identifier.remove.modal.areYouSureYouWantToRemoveTheIdentifier'))) {
         this.metadata.certificate = '';
         this.certificateIdentifier.issueUrl = '';
         this.$emit('update', this.metadata.certificate);
@@ -1396,6 +1400,7 @@ export default {
 }
 
 .codecheck-metadata-form .save-message {
+  white-space: pre-line;
   margin-top: 1rem;
   padding: 0.75rem;
   border-radius: 4px;

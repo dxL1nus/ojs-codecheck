@@ -1,10 +1,11 @@
 <?php
-namespace APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers;
+namespace APP\plugins\generic\codecheck\classes\CodecheckRegister;
 
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\UniqueArray;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckVenueTypes;
-use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
+use APP\plugins\generic\codecheck\classes\DataStructures\UniqueArray;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenueTypes;
+use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
+use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckApiClient;
 
 class CodecheckVenueNames
 {
@@ -13,24 +14,30 @@ class CodecheckVenueNames
     /**
      * Initializes a new List of all CODECHECK Venue Names
      */
-    function __construct(?JsonApiCaller $apiCaller = null, ?CodecheckVenueTypes $codecheckVenueTypes = null)
+    function __construct(?CodecheckApiClient $apiClient = null, ?CodecheckVenueTypes $codecheckVenueTypes = null)
     {
         // Initialize unique Array
         $this->uniqueArray = new UniqueArray();
 
         // fetch CODECHECK Certificate GitHub Labels
         // Intialize API caller
-        $jsonApiCaller = $apiCaller ?? new JsonApiCaller("https://codecheck.org.uk/register/venues/index.json");
+        $codecheckApiClient = $apiClient ?? new CodecheckApiClient();
         // fetch CODECHECK Type data
         try {
-            $jsonApiCaller->fetch();
-        } catch (ApiFetchException $e) {
+            $codecheckApiClient->fetch("https://codecheck.org.uk/register/venues/index.json");
+        } catch (CurlInitException $curlInitException) {
             // TODO: Implement that the user gets notified, that the fetching of the Labels didn't work
-            error_log($e);
-            throw $e;
+            error_log($curlInitException);
+            throw $curlInitException;
+            return;
+        } catch (CurlReadException $curlReadException) {
+            // TODO: Implement that the user gets notified, that the fetching of the Labels didn't work
+            error_log($curlReadException);
+            throw $curlReadException;
+            return;
         }
         // get json Data from API Caller
-        $data = $jsonApiCaller->getData();
+        $data = $codecheckApiClient->getData();
 
         // find all venue Types
         // TODO: Remove this once the actualy Codecheck API contains the labels/ Venue Names to fetch

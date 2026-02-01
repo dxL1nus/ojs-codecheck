@@ -2,9 +2,9 @@
 
 namespace APP\plugins\generic\codecheck\tests;
 
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifierList;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifier;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifierList;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterApiClient;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifier;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
 use PKP\tests\PKPTestCase;
@@ -116,7 +116,7 @@ class CertificateIdentifierListUnitTest extends PKPTestCase
     public function testFromApiWithMockApiParserWithEmptyFetchedIssues()
     {
         // Create a mock of the API parser
-        $apiParserMock = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+        $apiParserMock = $this->createMock(CodecheckGithubRegisterApiClient::class);
 
         // Configure fetchIssues() to do nothing (simulate successful fetch)
         $apiParserMock->method('fetchIssues');
@@ -130,7 +130,7 @@ class CertificateIdentifierListUnitTest extends PKPTestCase
     public function testFromApiWithMockApiParserThrowsApiException()
     {
         // Create a mock of the API parser
-        $apiParserMock = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+        $apiParserMock = $this->createMock(CodecheckGithubRegisterApiClient::class);
 
         // Configure fetchIssues() to do nothing (simulate successful fetch)
         $apiParserMock->method('fetchIssues')
@@ -145,7 +145,7 @@ class CertificateIdentifierListUnitTest extends PKPTestCase
     public function testFromApiWithMockApiParserThrowsNoMatchingIssuesException()
     {
         // Create a mock of the API parser
-        $apiParserMock = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+        $apiParserMock = $this->createMock(CodecheckGithubRegisterApiClient::class);
 
         // Configure fetchIssues() to do nothing (simulate successful fetch)
         $apiParserMock->method('fetchIssues')
@@ -161,7 +161,7 @@ class CertificateIdentifierListUnitTest extends PKPTestCase
     public function testFromApiWithMockApiParserWithSomeFetchedIssues()
     {
         // Create a mock of the API parser
-        $apiParser = $this->createMock(CodecheckRegisterGithubIssuesApiParser::class);
+        $apiParser = $this->createMock(CodecheckGithubRegisterApiClient::class);
 
         $apiParser->method('getIssues')
               ->willReturn([

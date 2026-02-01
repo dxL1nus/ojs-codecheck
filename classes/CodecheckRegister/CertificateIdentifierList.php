@@ -1,12 +1,12 @@
 <?php
 
-namespace APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers;
+namespace APP\plugins\generic\codecheck\classes\CodecheckRegister;
 
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\UniqueArray;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CertificateIdentifier;
+use APP\plugins\generic\codecheck\classes\DataStructures\UniqueArray;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterApiClient;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifier;
 
 class CertificateIdentifierList
 {
@@ -25,17 +25,17 @@ class CertificateIdentifierList
     /**
      * Factory Method to create a new CertificateIdentifierList from a GitHub API fetch
      * 
-     * @param CodecheckRegisterGithubIssuesApiParser $apiParser The APIParser for the GitHub Issues
+     * @param CodecheckGithubRegisterApiClient $codecheckGithubRegisterApiClient The APIParser for the GitHub Issues
      * @return CertificateIdentifierList Returns a new List containing all fetched Certificate Identifiers from GitHub
      */
     static function fromApi(
-        CodecheckRegisterGithubIssuesApiParser $apiParser
+        CodecheckGithubRegisterApiClient $codecheckGithubRegisterApiClient
     ): CertificateIdentifierList {
         $newCertificateIdentifierList = new CertificateIdentifierList();
 
         // fetch API
         try {
-            $apiParser->fetchIssues();
+            $codecheckGithubRegisterApiClient->fetchIssues();
         } catch (ApiFetchException $ae) {
             error_log($ae);
             throw $ae;
@@ -44,7 +44,7 @@ class CertificateIdentifierList
             throw $me;
         }
 
-        foreach ($apiParser->getIssues() as $issue) {
+        foreach ($codecheckGithubRegisterApiClient->getIssues() as $issue) {
             // raw identifier (can still have ranges of identifiers);
             $rawIdentifier = CertificateIdentifierList::getRawIdentifier($issue['title']);
             

@@ -2,9 +2,8 @@
 
 namespace APP\plugins\generic\codecheck\tests;
 
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\JsonApiCaller;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckVenueTypes;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\UniqueArray;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckApiClient;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenueTypes;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use PKP\tests\PKPTestCase;
 
@@ -28,7 +27,7 @@ class CodecheckVenueTypesUnitTest extends PKPTestCase
     public function testVenueTypes()
     {
         // Create a mock of the API parser
-        $apiCallerMock = $this->createMock(JsonApiCaller::class);
+        $apiCallerMock = $this->createMock(CodecheckApiClient::class);
 
         // Mock fetchLabels() so it does nothing
         $apiCallerMock->method('fetch');
@@ -53,7 +52,7 @@ class CodecheckVenueTypesUnitTest extends PKPTestCase
     public function testVenueTypesExpectException()
     {
         // Create a mock of the API parser
-        $apiCallerMock = $this->createMock(JsonApiCaller::class);
+        $apiCallerMock = $this->createMock(CodecheckApiClient::class);
 
         // Mock fetchLabels() so it does nothing
         $apiCallerMock->method('fetch')

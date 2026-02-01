@@ -26,6 +26,8 @@ class CodecheckPlugin extends GenericPlugin
             $this->addAssets();
 
             $articleDetails = new ArticleDetails($this);
+            $issueTOC = new \APP\plugins\generic\codecheck\classes\FrontEnd\IssueTOC($this);
+            Hook::add('Templates::Issue::Issue::Article', $issueTOC->addCodecheckBadge(...));
             Hook::add('Templates::Article::Details', $articleDetails->addCodecheckInfo(...));
 
             // Opt-in checkbox on submission start
@@ -250,12 +252,8 @@ class CodecheckPlugin extends GenericPlugin
         $result = parent::setEnabled($enabled, $contextId);
         
         if ($enabled) {
-            try {
                 $migration = new CodecheckSchemaMigration();
                 $migration->up();
-            } catch (\Exception $e) {
-                error_log('CODECHECK Plugin: Migration failed - ' . $e->getMessage());
-            }
         }
         
         return $result;

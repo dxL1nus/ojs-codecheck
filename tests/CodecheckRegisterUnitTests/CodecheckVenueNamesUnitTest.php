@@ -2,12 +2,10 @@
 
 namespace APP\plugins\generic\codecheck\tests;
 
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckRegisterGithubIssuesApiParser;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckVenueNames;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\UniqueArray;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\JsonApiCaller;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenueNames;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckApiClient;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\CodecheckVenueTypes;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenueTypes;
 use PKP\tests\PKPTestCase;
 
 /**
@@ -30,9 +28,12 @@ class CodecheckVenueNamesUnitTest extends PKPTestCase
     public function testVenueNames()
     {
         // Mock JsonApiCaller used inside CodecheckVenueTypes
-        $jsonApiMockVenueTypes = $this->createMock(JsonApiCaller::class);
+        $jsonApiMockVenueTypes = $this->createMock(CodecheckApiClient::class);
 
-        $jsonApiMockVenueTypes->expects($this->once())->method('fetch');
+        $jsonApiMockVenueTypes->expects($this->once())
+                                ->method('fetch')
+                                ->with('https://codecheck.org.uk/register/venues/index.json');
+
         // Mocked "venue types" data returned from API
         $jsonApiMockVenueTypes->method('getData')->willReturn([
             ['Venue type' => 'journal'],
@@ -43,10 +44,12 @@ class CodecheckVenueNamesUnitTest extends PKPTestCase
         $venueTypes = new CodecheckVenueTypes($jsonApiMockVenueTypes);
 
         // Mock GitHub API parser for CodecheckVenueNames
-        $jsonApiMockVenueNames = $this->createMock(JsonApiCaller::class);
+        $jsonApiMockVenueNames = $this->createMock(CodecheckApiClient::class);
 
-        $jsonApiMockVenueNames->expects($this->once())->method('fetch');
-
+        $jsonApiMockVenueNames->expects($this->once())
+                                ->method('fetch')
+                                ->with('https://codecheck.org.uk/register/venues/index.json');
+                                
         // Provide labels (some are venue types, some are venue names)
         $jsonApiMockVenueNames->method('getData')->willReturn([
             ["Issue label" => 'journal'],
@@ -64,7 +67,7 @@ class CodecheckVenueNamesUnitTest extends PKPTestCase
         $result = $venueNames->get()->toArray();
 
         $this->assertEquals(
-            ['lifecycle journal', 'conference', 'check-nl', 'preprint',],
+            ['lifecycle journal', 'conference', 'check-nl', 'preprint'],
             $result
         );
     }
@@ -72,7 +75,7 @@ class CodecheckVenueNamesUnitTest extends PKPTestCase
     public function testVenueNamesApiException()
     {
         // Create a mock of the API parser
-        $apiParserMock = $this->createMock(JsonApiCaller::class);
+        $apiParserMock = $this->createMock(CodecheckApiClient::class);
 
         // Mock fetchLabels() so it does nothing
         $apiParserMock->method('fetch')

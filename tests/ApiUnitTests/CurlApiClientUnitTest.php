@@ -2,18 +2,18 @@
 
 namespace APP\plugins\generic\codecheck\tests;
 
-use APP\plugins\generic\codecheck\classes\RetrieveReserveIdentifiers\JsonApiCaller;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\JsonApiCaller;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use PKP\tests\PKPTestCase;
 
 /**
- * @file APP/plugins/generic/codecheck/tests/unittests/JsonApiCallerUnitTest.php
+ * @file APP/plugins/generic/codecheck/tests/ApiUnitTests/CurlApiClientUnitTest.php
  *
- * @class JsonApiCallerUnitTest
+ * @class CurlApiClientUnitTest
  *
- * @brief Tests for the JsonApiCaller class
+ * @brief Tests for the CurlApiClient class
  */
-class JsonApiCallerUnitTest extends PKPTestCase
+class CurlApiClientUnitTest extends PKPTestCase
 {
     /**
      * Set up the test environment
