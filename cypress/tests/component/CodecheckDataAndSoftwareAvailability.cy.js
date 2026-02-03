@@ -9,7 +9,7 @@ describe('CodecheckDataAndSoftwareAvailability Component', () => {
       }
     });
     
-    cy.get('textarea').should('have.attr', 'placeholder', 'Describe how your data and code are available...');
+    cy.get('textarea').should('have.attr', 'placeholder', 'plugins.generic.codecheck.dataSoftwareAvailability.description');
   });
 
   it('displays initial value from props', () => {
