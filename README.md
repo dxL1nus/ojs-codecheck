@@ -5,6 +5,7 @@
 [![repo status](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Contributions - welcome](https://img.shields.io/badge/Contributions-welcome-blueviolet)](https://github.com/codecheckers/ojs-codecheck/blob/main/CONTRIBUTING.md)
+[![Component Tests](https://github.com/codecheckers/ojs-codecheck/actions/workflows/component-tests.yml/badge.svg?branch=main)](https://github.com/codecheckers/ojs-codecheck/actions/workflows/component-tests.yml)
 <br />
 
 An [OJS Plugin](https://docs.pkp.sfu.ca/dev/plugin-guide/en/) to streamline codechecking of submissions and display of [CODECHECK](https://codecheck.org.uk/) certificates.
@@ -318,6 +319,7 @@ lib/pkp/tests/results/index.html
 **Note:** Some tests require full OJS environment and are skipped locally (database, facades, translations). They run successfully in Docker/CI.
 
 ### Frontend Component Tests
+[![Component Tests](https://github.com/codecheckers/ojs-codecheck/actions/workflows/component-tests.yml/badge.svg?branch=main)](https://github.com/codecheckers/ojs-codecheck/actions/workflows/component-tests.yml)
 
 From the plugin directory:
 ```bash
