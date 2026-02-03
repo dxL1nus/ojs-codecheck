@@ -4,8 +4,9 @@ namespace APP\plugins\generic\codecheck\tests;
 
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenueNames;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckApiClient;
-use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
+use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenueTypes;
+use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
 use PKP\tests\PKPTestCase;
 
 /**
@@ -72,19 +73,39 @@ class CodecheckVenueNamesUnitTest extends PKPTestCase
         );
     }
 
-    public function testVenueNamesApiException()
+    public function testVenueNamesCurlInitException()
     {
-        // Create a mock of the API parser
-        $apiParserMock = $this->createMock(CodecheckApiClient::class);
+        // Create a mock of the CodecheckApiClient
+        $clientMock = $this->createMock(CodecheckApiClient::class);
 
         // Mock fetchLabels() so it does nothing
-        $apiParserMock->method('fetch')
-                        ->will($this->throwException(new ApiFetchException('API failed')));
+        $clientMock->method('fetch')
+                        ->will($this->throwException(new CurlInitException('Curl initialization failed', 500)));
 
-        $this->expectException(ApiFetchException::class);
-        $this->expectExceptionMessage('API failed');
+        $this->expectException(CurlInitException::class);
+        $this->expectExceptionMessage('Curl initialization failed');
+        $this->expectExceptionCode(500);
 
         // Inject the mock into the constructor
-        $venueNames = new CodecheckVenueNames($apiParserMock);
+        new CodecheckVenueNames($clientMock);
+    }
+
+    public function testVenueNamesCurlReadException()
+    {
+        $testCurlHandle = curl_init();
+
+        // Create a mock of the CodecheckApiClient
+        $clientMock = $this->createMock(CodecheckApiClient::class);
+
+        // Mock fetchLabels() so it does nothing
+        $clientMock->method('fetch')
+                        ->will($this->throwException(new CurlReadException($testCurlHandle)));
+
+        $this->expectException(CurlReadException::class);
+        $this->expectExceptionMessage(curl_error($testCurlHandle));
+        $this->expectExceptionCode(curl_errno($testCurlHandle));
+
+        // Inject the mock into the constructor
+        new CodecheckVenueNames($clientMock);
     }
 }

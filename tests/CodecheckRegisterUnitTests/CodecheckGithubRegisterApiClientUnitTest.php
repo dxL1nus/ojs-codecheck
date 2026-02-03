@@ -38,7 +38,7 @@ class CodecheckGithubRegisterApiClientUnitTest extends PKPTestCase
                 ->willReturn($this->journalName);
 	}
 
-    public function testGithubParserGetLabels()
+    public function testGithubRegisterClientGetLabels()
     {
         // Create a mock of the API parser
         $apiParser = new CodecheckGithubRegisterApiClient(
@@ -50,7 +50,21 @@ class CodecheckGithubRegisterApiClientUnitTest extends PKPTestCase
         $this->assertSame($apiParser->getLabels()->toArray(), []);
     }
 
-    public function testGithubParserGetIssues()
+    public function testGithubRegisterClientUnknownJournal()
+    {
+        $unknownJournal = null;
+
+        // Create a mock of the API parser
+        $apiParser = new CodecheckGithubRegisterApiClient(
+            $this->githubRegisterRepository,
+            $this->submissionId,
+            $unknownJournal
+        );
+
+        $this->assertSame($apiParser->getLabels()->toArray(), []);
+    }
+
+    public function testGithubRegisterClientGetIssues()
     {
         // Create a mock of the API parser
         $apiParser = new CodecheckGithubRegisterApiClient(
@@ -62,7 +76,7 @@ class CodecheckGithubRegisterApiClientUnitTest extends PKPTestCase
         $this->assertSame($apiParser->getIssues(), []);
     }
 
-    public function testGithubParserFetchIssues()
+    public function testGithubRegisterClientFetchIssues()
     {
         // 1. Mock the "issues API" object  
         $issueApiMock = $this->createMock(\Github\Api\Issue::class);
@@ -98,7 +112,7 @@ class CodecheckGithubRegisterApiClientUnitTest extends PKPTestCase
         $this->assertEquals('Alice | 2025-001', $issues[0]['title']);
     }
 
-    public function testGithubParserFetchLabels()
+    public function testGithubRegisterClientFetchLabels()
     {
         $labelsApiMock = $this->createMock(\Github\Api\Issue\Labels::class);
 
@@ -138,7 +152,7 @@ class CodecheckGithubRegisterApiClientUnitTest extends PKPTestCase
         $this->assertContains('check-nl', $labels);
     }
 
-    public function testGithubParserFetchLabelsThrowsException()
+    public function testGithubRegisterClientFetchLabelsThrowsException()
     {
         $labelsApiMock = $this->createMock(\Github\Api\Issue\Labels::class);
 

@@ -39,9 +39,7 @@ class CodecheckGithubRegisterApiClient
         $this->labels = new UniqueArray();
         $this->githubRegisterRepository = $githubRegisterRepository;
         $this->submissionID = $submissionID;
-        $this->journalName = $journal
-                                ? $journal->getLocalizedName()
-                                : 'Unknwon Journal';
+        $this->journalName = $journal?->getLocalizedName() ?? 'Unknown Journal';
     }
 
     /**

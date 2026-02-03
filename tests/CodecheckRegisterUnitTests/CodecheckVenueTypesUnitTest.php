@@ -4,7 +4,8 @@ namespace APP\plugins\generic\codecheck\tests;
 
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckApiClient;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenueTypes;
-use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
+use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
+use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
 use PKP\tests\PKPTestCase;
 
 /**
@@ -49,14 +50,14 @@ class CodecheckVenueTypesUnitTest extends PKPTestCase
         $this->assertSame($venueTypes->get()->toArray(), $expectedVenueTypesArray);
     }
 
-    public function testVenueTypesExpectException()
+    public function testVenueTypesCurlInitException()
     {
-        // Create a mock of the API parser
-        $apiCallerMock = $this->createMock(CodecheckApiClient::class);
+        // Create a mock of the CodecheckApiClient
+        $clientMock = $this->createMock(CodecheckApiClient::class);
 
         // Mock fetchLabels() so it does nothing
-        $apiCallerMock->method('fetch')
-                        ->will($this->throwException(new ApiFetchException('API failed')));;
+        $clientMock->method('fetch')
+                        ->will($this->throwException(new CurlInitException('Curl initialization failed', 500)));
 
         $venueTypesArray = [
             ['Venue type' => 'journal'],
@@ -65,12 +66,41 @@ class CodecheckVenueTypesUnitTest extends PKPTestCase
             ['Venue type' => 'institution'],
         ];
 
-        $apiCallerMock->method('getData')->willReturn($venueTypesArray);
+        $clientMock->method('getData')->willReturn($venueTypesArray);
 
-        $this->expectException(ApiFetchException::class);
-        $this->expectExceptionMessage('API failed');
+        $this->expectException(CurlInitException::class);
+        $this->expectExceptionMessage('Curl initialization failed');
+        $this->expectExceptionCode(500);
 
         // Inject the mock into the constructor
-        $venueTypes = new CodecheckVenueTypes($apiCallerMock);
+        new CodecheckVenueTypes($clientMock);
+    }
+
+    public function testVenueTypessCurlReadException()
+    {
+        $testCurlHandle = curl_init();
+
+        // Create a mock of the CodecheckApiClient
+        $clientMock = $this->createMock(CodecheckApiClient::class);
+
+        // Mock fetchLabels() so it does nothing
+        $clientMock->method('fetch')
+                        ->will($this->throwException(new CurlReadException($testCurlHandle)));
+
+        $venueTypesArray = [
+            ['Venue type' => 'journal'],
+            ['Venue type' => 'community'],
+            ['Venue type' => 'conference'],
+            ['Venue type' => 'institution'],
+        ];
+
+        $clientMock->method('getData')->willReturn($venueTypesArray);
+
+        $this->expectException(CurlReadException::class);
+        $this->expectExceptionMessage(curl_error($testCurlHandle));
+        $this->expectExceptionCode(curl_errno($testCurlHandle));
+
+        // Inject the mock into the constructor
+        new CodecheckVenueTypes($clientMock);
     }
 }

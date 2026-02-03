@@ -242,6 +242,7 @@ codecheck/
 ├── locale/*                   # Internationalization (language localization strings)
 ├── package-lock.json
 ├── package.json
+├── package-plugin.sh          # Shell script, that makes packaging this plugin reproducible
 ├── public/build/*             # NPM realese build files
 ├── resources/js/*             # The Vue.js Components
 ├── schema.xml                 # CODECHECK metadata table schema file
@@ -311,7 +312,7 @@ lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit.xml plugins/
 
 If you want to visualize the test coverage, open the following file which is created during each test run:
 ```bash
-/var/www/html/ojs-tests/lib/pkp/tests/results/index.html
+lib/pkp/tests/results/index.html
 ```
 
 **Note:** Some tests require full OJS environment and are skipped locally (database, facades, translations). They run successfully in Docker/CI.

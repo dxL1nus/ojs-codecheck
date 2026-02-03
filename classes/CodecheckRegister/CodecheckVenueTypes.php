@@ -26,12 +26,10 @@ class CodecheckVenueTypes
             // TODO: Implement that the user gets notified, that the fetching of the Labels didn't work
             error_log($curlInitException);
             throw $curlInitException;
-            return;
         } catch (CurlReadException $curlReadException) {
             // TODO: Implement that the user gets notified, that the fetching of the Labels didn't work
             error_log($curlReadException);
             throw $curlReadException;
-            return;
         }
         // get json Data from API Caller
         $data = $codecheckApiClient->getData();
