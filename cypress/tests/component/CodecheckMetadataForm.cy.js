@@ -38,7 +38,7 @@ describe('CodecheckMetadataForm Component', () => {
     }).as('loadMetadata');
 
     // Mock venue data API
-    cy.intercept('GET', '**/codecheck/getVenueData', {
+    cy.intercept('GET', '**/codecheck/venue', {
       statusCode: 200,
       body: {
         success: true,
@@ -314,7 +314,16 @@ describe('CodecheckMetadataForm Component', () => {
   });
 
   it('can reserve certificate identifier', () => {
-    cy.intercept('POST', '**/codecheck/reserveIdentifier', {
+    cy.mount(CodecheckMetadataForm, {
+      props: {
+        submission: { id: 1 },
+        canEdit: true
+      }
+    });
+
+    let submissionId = 1;
+
+    cy.intercept('POST', `**/codecheck/identifier?submissionId=${submissionId}`, {
       statusCode: 200,
       body: {
         success: true,
