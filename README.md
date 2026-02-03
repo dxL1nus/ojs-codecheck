@@ -242,6 +242,7 @@ codecheck/
 ├── locale/*                   # Internationalization (language localization strings)
 ├── package-lock.json
 ├── package.json
+├── package-plugin.sh          # Shell script, that makes packaging this plugin reproducible
 ├── public/build/*             # NPM realese build files
 ├── resources/js/*             # The Vue.js Components
 ├── schema.xml                 # CODECHECK metadata table schema file
