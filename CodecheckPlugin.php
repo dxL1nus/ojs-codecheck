@@ -5,6 +5,7 @@ use APP\core\Application;
 use APP\template\TemplateManager;
 use APP\plugins\generic\codecheck\classes\FrontEnd\ArticleDetails;
 use APP\plugins\generic\codecheck\classes\Settings\Actions;
+use APP\plugins\generic\codecheck\classes\Settings\Manage;
 use APP\plugins\generic\codecheck\classes\migration\CodecheckSchemaMigration;
 use APP\plugins\generic\codecheck\classes\Submission\Schema;
 use APP\plugins\generic\codecheck\classes\Submission\SubmissionWizardHandler;
@@ -13,6 +14,7 @@ use PKP\plugins\Hook;
 use PKP\components\forms\FieldOptions;
 use APP\facades\Repo;
 use APP\plugins\generic\codecheck\api\v1\CodecheckApiHandler;
+use PKP\core\JSONMessage;
 
 class CodecheckPlugin extends GenericPlugin
 {
@@ -41,37 +43,6 @@ class CodecheckPlugin extends GenericPlugin
             // Add hook for the Template Manager
             Hook::add('TemplateManager::display', $this->callbackTemplateManagerDisplay(...));
             
-            $metadataHandler = new CodecheckMetadataHandler($this);
-            Hook::add('LoadHandler', function($hookName, $args) use ($metadataHandler) {
-                $page = $args[0];
-                $op = $args[1];
-                                
-                if ($page === 'codecheck') {
-                    $request = Application::get()->getRequest();
-                    $submissionId = $request->getUserVar('submissionId');
-                                        
-                    if ($op === 'metadata' && $request->isGet()) {
-                        $result = $metadataHandler->getMetadata($request, $submissionId);
-                        header('Content-Type: application/json');
-                        echo json_encode($result);
-                        exit;
-                    } elseif ($op === 'metadata' && $request->isPost()) {
-                        $result = $metadataHandler->saveMetadata($request, $submissionId);
-                        header('Content-Type: application/json');
-                        echo json_encode($result);
-                        exit;
-                    } elseif ($op === 'yaml') {
-                        $result = $metadataHandler->generateYaml($request, $submissionId);
-                        header('Content-Type: application/json');
-                        echo json_encode($result);
-                        exit;
-                    }
-                    
-                }
-                
-                return false;
-            });
-            
             // Wizard fields schema
             $codecheckSchema = new Schema();
             Hook::add('Schema::get::publication', function($hookName, $args) use ($codecheckSchema) {
@@ -95,6 +66,14 @@ class CodecheckPlugin extends GenericPlugin
         return $success;
     }
     
+    /**
+     * Setup the `CodecheckApiHandler`
+     * 
+     * @param string $hookname The name of the hook
+     * @param array $args The arguments passed by the hook
+     * 
+     * @return void
+     */
     public function setupAPIHandler(string $hookName, array $args): void
     {
         $request = $args[0];
@@ -262,20 +241,51 @@ class CodecheckPlugin extends GenericPlugin
         return false;
     }
 
+    /**
+     * Provide a name for this plugin
+     *
+     * The name will appear in the Plugin Gallery where editors can
+     * install, enable and disable plugins.
+     */
     public function getDisplayName(): string
     {
         return __('plugins.generic.codecheck.displayName');
     }
 
+    /**
+     * Provide a description for this plugin
+     *
+     * The description will appear in the Plugin Gallery where editors can
+     * install, enable and disable plugins.
+     */
     public function getDescription(): string
     {
         return __('plugins.generic.codecheck.description');
     }
 
+    /**
+     * Add a settings action to the plugin's entry in the CODECHECK plugins list.
+     *
+     * @param Request $request
+     * @param array $actionArgs
+     */
     public function getActions($request, $actionArgs): array
     {
         $actions = new Actions($this);
         return $actions->execute($request, $actionArgs, parent::getActions($request, $actionArgs));
+    }
+
+    /**
+     * Load a form when the `settings` button is clicked and
+     * save the form when the user saves it.
+     *
+     * @param array $args
+     * @param Request $request
+     */
+    public function manage($args, $request): JSONMessage
+    {
+        $manage = new Manage($this);
+        return $manage->execute($args, $request);
     }
 
     public function setEnabled($enabled, $contextId = null)
