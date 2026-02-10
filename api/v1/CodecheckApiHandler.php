@@ -17,6 +17,8 @@ use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifie
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenue;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckYamlValidator;
+use APP\plugins\generic\codecheck\classes\Constants;
+use APP\plugins\generic\codecheck\CodecheckPlugin;
 
 use APP\facades\Repo;
 use \Github\Client;
@@ -30,6 +32,7 @@ class CodecheckApiHandler
     private array $roles;
     private array $endpoints;
     private string $route;
+    private CodecheckPlugin $plugin;
     private Request $request;
     private CodecheckMetadataHandler $codecheckMetadataHandler;
 
@@ -39,8 +42,10 @@ class CodecheckApiHandler
      * @param Request $request API Request
      * @return void
      */
-    public function __construct(Request $request)
+    public function __construct(CodecheckPlugin $plugin, Request $request)
     {
+        $this->plugin = $plugin;
+
         $this->response = new JsonResponse([
             'success' => false,
             'error' => 'No API Response was created.',
@@ -229,16 +234,22 @@ class CodecheckApiHandler
         $venueName = $postParams["venueName"];
         $authorString = $postParams["authorString"];
 
+        // get the github Register Repository specified in the plugin settings form
+        $context = $this->request->getContext();
+        $githubRegisterrepository = $this->plugin->getSetting($context->getId(), Constants::GITHUB_REGISTER_REPOSITORY);
+
+        error_log("[Codecheck Api Handler] GitHub Register Repository specified in the Settings form: " . $githubRegisterrepository);
+
         // check if they are of type string (If not return success false over the API)
         if(is_string($venueType) && is_string($venueName) && is_string($authorString)) {
             // CODECHECK GitHub Issue Register API parser
             $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
-                'testing-dev-register', // Name of the GitHub Repository for the Register
+                $githubRegisterrepository, // Name of the GitHub Repository for the Register
                 $this->codecheckMetadataHandler->getSubmissionId(), // Submission ID
-                $this->request->getContext(), // The Journal Object of the Submission
+                $context, // The Journal Object of the Submission
             );
 
-            error_log(print_r($this->request->getContext(), true));
+            //error_log(print_r($this->request->getContext(), true));
 
             // CODECHECK Register with list of all identifiers in range
             try {
