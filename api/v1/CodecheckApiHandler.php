@@ -28,6 +28,8 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+use function Clue\StreamFilter\append;
+
 class CodecheckApiHandler
 {
     private JsonResponse $response;
