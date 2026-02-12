@@ -301,7 +301,7 @@ The plugin includes comprehensive test coverage for both backend PHP code and fr
 From the plugin directory:
 ```bash
 cd plugins/generic/codecheck
-php ../../../lib/pkp/lib/vendor/bin/phpunit --configuration phpunit.xml tests/
+php ../../../lib/pkp/lib/vendor/phpunit/phpunit/phpunit --configuration phpunit.xml tests/
 ```
 
 **Option 2: Docker/CI Environment**

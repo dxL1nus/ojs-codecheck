@@ -5,18 +5,8 @@ namespace APP\plugins\generic\codecheck\tests;
 use APP\plugins\generic\codecheck\classes\Submission\CodecheckSubmission;
 use PKP\tests\PKPTestCase;
 
-/**
- * @file APP/plugins/generic/codecheck/tests/CodecheckSubmissionUnitTest.php
- *
- * @class CodecheckSubmissionUnitTest
- *
- * @brief Tests for the CodecheckSubmission class
- */
 class CodecheckSubmissionUnitTest extends PKPTestCase
 {
-    /**
-     * Set up the test environment
-     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -24,257 +14,249 @@ class CodecheckSubmissionUnitTest extends PKPTestCase
 
     public function testGetSubmissionId()
     {
-        $data = ['submission_id' => 123];
-        $submission = new CodecheckSubmission($data);
-        
+        $submission = new CodecheckSubmission(['submission_id' => 123]);
         $this->assertSame(123, $submission->getSubmissionId());
     }
 
-    public function testGetOptInTrue()
+    public function testGetVersion()
     {
-        $data = ['submission_id' => 1, 'opt_in' => 1];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertTrue($submission->getOptIn());
+        $submission = new CodecheckSubmission(['submission_id' => 1, 'version' => '1.0']);
+        $this->assertSame('1.0', $submission->getVersion());
     }
 
-    public function testGetOptInFalse()
+    public function testGetVersionReturnsDefaultWhenNotSet()
     {
-        $data = ['submission_id' => 1, 'opt_in' => 0];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertFalse($submission->getOptIn());
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertSame('latest', $submission->getVersion());
     }
 
-    public function testGetCodeRepository()
+    public function testGetPublicationType()
     {
-        $data = [
+        $submission = new CodecheckSubmission(['submission_id' => 1, 'publication_type' => 'url']);
+        $this->assertSame('url', $submission->getPublicationType());
+    }
+
+    public function testGetPublicationTypeReturnsDefaultWhenNotSet()
+    {
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertSame('doi', $submission->getPublicationType());
+    }
+
+    public function testGetManifestReturnsArray()
+    {
+        $manifest = [['file' => 'output.png', 'comment' => 'Main result']];
+        $submission = new CodecheckSubmission([
             'submission_id' => 1,
-            'code_repository' => 'https://github.com/test/repo'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('https://github.com/test/repo', $submission->getCodeRepository());
+            'manifest' => json_encode($manifest)
+        ]);
+        $this->assertSame($manifest, $submission->getManifest());
     }
 
-    public function testGetCodeRepositoryReturnsEmptyStringWhenNotSet()
+    public function testGetManifestReturnsEmptyArrayWhenNotSet()
     {
-        $data = ['submission_id' => 1];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('', $submission->getCodeRepository());
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertSame([], $submission->getManifest());
     }
 
-    public function testGetDataRepository()
+    public function testGetRepository()
     {
-        $data = [
+        $submission = new CodecheckSubmission([
             'submission_id' => 1,
-            'data_repository' => 'https://zenodo.org/record/123'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('https://zenodo.org/record/123', $submission->getDataRepository());
+            'repository' => 'https://github.com/test/repo'
+        ]);
+        $this->assertSame('https://github.com/test/repo', $submission->getRepository());
     }
 
-    public function testGetDependencies()
+    public function testGetRepositoryReturnsEmptyStringWhenNotSet()
     {
-        $data = [
-            'submission_id' => 1,
-            'dependencies' => 'Python 3.8, numpy, pandas'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('Python 3.8, numpy, pandas', $submission->getDependencies());
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertSame('', $submission->getRepository());
     }
 
-    public function testGetExecutionInstructions()
+    public function testGetSource()
     {
-        $data = [
+        $submission = new CodecheckSubmission([
             'submission_id' => 1,
-            'execution_instructions' => 'Run python main.py'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('Run python main.py', $submission->getExecutionInstructions());
+            'source' => 'https://github.com/codecheckers/register'
+        ]);
+        $this->assertSame('https://github.com/codecheckers/register', $submission->getSource());
     }
 
-    public function testGetCertificateDoi()
+    public function testGetCodecheckers()
     {
-        $data = [
+        $codecheckers = [['name' => 'John Doe', 'orcid' => '0000-0001-2345-6789']];
+        $submission = new CodecheckSubmission([
             'submission_id' => 1,
-            'certificate_doi' => '10.5281/zenodo.123456'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('10.5281/zenodo.123456', $submission->getCertificateDoi());
+            'codecheckers' => json_encode($codecheckers)
+        ]);
+        $this->assertSame($codecheckers, $submission->getCodecheckers());
     }
 
-    public function testGetCertificateUrl()
+    public function testGetCodecheckersReturnsEmptyArrayWhenNotSet()
     {
-        $data = [
-            'submission_id' => 1,
-            'certificate_url' => 'https://codecheck.org.uk/certificate-2025-001'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('https://codecheck.org.uk/certificate-2025-001', $submission->getCertificateUrl());
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertSame([], $submission->getCodecheckers());
     }
 
-    public function testGetCodecheckerNames()
+    public function testGetCertificate()
     {
-        $data = [
+        $submission = new CodecheckSubmission([
             'submission_id' => 1,
-            'codechecker_names' => 'John Doe, Jane Smith'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
+            'certificate' => 'CODECHECK-2025-001'
+        ]);
+        $this->assertSame('CODECHECK-2025-001', $submission->getCertificate());
+    }
+
+    public function testGetCheckTime()
+    {
+        $submission = new CodecheckSubmission([
+            'submission_id' => 1,
+            'check_time' => '2025-01-15'
+        ]);
+        $this->assertSame('2025-01-15', $submission->getCheckTime());
+    }
+
+    public function testGetCheckTimeReturnsNullWhenNotSet()
+    {
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertNull($submission->getCheckTime());
+    }
+
+    public function testGetSummary()
+    {
+        $submission = new CodecheckSubmission([
+            'submission_id' => 1,
+            'summary' => 'All outputs reproduced successfully'
+        ]);
+        $this->assertSame('All outputs reproduced successfully', $submission->getSummary());
+    }
+
+    public function testGetReport()
+    {
+        $submission = new CodecheckSubmission([
+            'submission_id' => 1,
+            'report' => 'https://zenodo.org/record/12345'
+        ]);
+        $this->assertSame('https://zenodo.org/record/12345', $submission->getReport());
+    }
+
+    public function testGetAdditionalContent()
+    {
+        $submission = new CodecheckSubmission([
+            'submission_id' => 1,
+            'additional_content' => 'custom_field: value'
+        ]);
+        $this->assertSame('custom_field: value', $submission->getAdditionalContent());
+    }
+
+    public function testHasCompletedCheckReturnsTrueWithCertificate()
+    {
+        $submission = new CodecheckSubmission([
+            'submission_id' => 1,
+            'certificate' => 'CODECHECK-2025-001'
+        ]);
+        $this->assertTrue($submission->hasCompletedCheck());
+    }
+
+    public function testHasCompletedCheckReturnsFalseWithoutCertificate()
+    {
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertFalse($submission->hasCompletedCheck());
+    }
+
+    public function testHasAssignedCheckerReturnsTrueWithCodecheckers()
+    {
+        $submission = new CodecheckSubmission([
+            'submission_id' => 1,
+            'codecheckers' => json_encode([['name' => 'John Doe']])
+        ]);
+        $this->assertTrue($submission->hasAssignedChecker());
+    }
+
+    public function testHasAssignedCheckerReturnsFalseWithoutCodecheckers()
+    {
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertFalse($submission->hasAssignedChecker());
+    }
+
+    public function testGetCertificateLinkWithValidUrl()
+    {
+        $submission = new CodecheckSubmission([
+            'submission_id' => 1,
+            'certificate' => 'https://codecheck.org.uk/certificate/CODECHECK-2025-001'
+        ]);
+        $this->assertSame(
+            'https://codecheck.org.uk/certificate/CODECHECK-2025-001',
+            $submission->getCertificateLink()
+        );
+    }
+
+    public function testGetCertificateLinkReturnsEmptyStringWhenNotSet()
+    {
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertSame('', $submission->getCertificateLink());
+    }
+
+    public function testGetDoiLinkWithValidDoi()
+    {
+        $submission = new CodecheckSubmission([
+            'submission_id' => 1,
+            'report' => '10.5281/zenodo.123456'
+        ]);
+        $this->assertSame('https://doi.org/10.5281/zenodo.123456', $submission->getDoiLink());
+    }
+
+    public function testGetDoiLinkReturnsEmptyStringWhenNotSet()
+    {
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertSame('', $submission->getDoiLink());
+    }
+
+    public function testGetCodecheckerNamesReturnsCommaSeparated()
+    {
+        $submission = new CodecheckSubmission([
+            'submission_id' => 1,
+            'codecheckers' => json_encode([
+                ['name' => 'John Doe'],
+                ['name' => 'Jane Smith']
+            ])
+        ]);
         $this->assertSame('John Doe, Jane Smith', $submission->getCodecheckerNames());
     }
 
-    public function testGetCheckStatus()
+    public function testGetCodecheckerNamesReturnsEmptyStringWhenNotSet()
     {
-        $data = [
-            'submission_id' => 1,
-            'check_status' => 'completed'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('completed', $submission->getCheckStatus());
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertSame('', $submission->getCodecheckerNames());
     }
 
-    public function testGetCertificateDate()
+    public function testGetCertificateDateReturnsCheckTime()
     {
-        $data = [
+        $submission = new CodecheckSubmission([
             'submission_id' => 1,
-            'certificate_date' => '2025-01-15'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
+            'check_time' => '2025-01-15'
+        ]);
         $this->assertSame('2025-01-15', $submission->getCertificateDate());
     }
 
     public function testGetCertificateDateReturnsNullWhenNotSet()
     {
-        $data = ['submission_id' => 1];
-        $submission = new CodecheckSubmission($data);
-        
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
         $this->assertNull($submission->getCertificateDate());
     }
 
-    public function testHasCompletedCheckReturnsTrueWithDoi()
+    public function testGetCodeRepositoryLegacyMethod()
     {
-        $data = [
+        $submission = new CodecheckSubmission([
             'submission_id' => 1,
-            'certificate_doi' => '10.5281/zenodo.123456'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertTrue($submission->hasCompletedCheck());
+            'repository' => 'https://github.com/test/repo'
+        ]);
+        $this->assertSame('https://github.com/test/repo', $submission->getCodeRepository());
     }
 
-    public function testHasCompletedCheckReturnsTrueWithUrl()
+    public function testGetDataRepositoryLegacyMethodReturnsEmpty()
     {
-        $data = [
-            'submission_id' => 1,
-            'certificate_url' => 'https://codecheck.org.uk/certificate-2025-001'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertTrue($submission->hasCompletedCheck());
-    }
-
-    public function testHasCompletedCheckReturnsFalseWithoutDoiOrUrl()
-    {
-        $data = ['submission_id' => 1];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertFalse($submission->hasCompletedCheck());
-    }
-
-    public function testHasAssignedCheckerReturnsFalse()
-    {
-        $data = ['submission_id' => 1];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertFalse($submission->hasAssignedChecker());
-    }
-
-    public function testGetCertificateLinkReturnsUrlWhenAvailable()
-    {
-        $data = [
-            'submission_id' => 1,
-            'certificate_url' => 'https://codecheck.org.uk/certificate-2025-001'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('https://codecheck.org.uk/certificate-2025-001', $submission->getCertificateLink());
-    }
-
-    public function testGetCertificateLinkReturnsEmptyStringWhenNotAvailable()
-    {
-        $data = ['submission_id' => 1];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('', $submission->getCertificateLink());
-    }
-
-    public function testGetDoiLinkReturnsDoiWhenAvailable()
-    {
-        $data = [
-            'submission_id' => 1,
-            'certificate_doi' => '10.5281/zenodo.123456'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('10.5281/zenodo.123456', $submission->getDoiLink());
-    }
-
-    public function testGetDoiLinkReturnsEmptyStringWhenNotAvailable()
-    {
-        $data = ['submission_id' => 1];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('', $submission->getDoiLink());
-    }
-
-    public function testGetFormattedCertificateLinkTextWithValidCertificateId()
-    {
-        $data = [
-            'submission_id' => 1,
-            'certificate_url' => 'https://codecheck.org.uk/register/certificate-2025-001'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('CODECHECK 2025-001', $submission->getFormattedCertificateLinkText());
-    }
-
-    public function testGetFormattedCertificateLinkTextWithCertificatePrefix()
-    {
-        $data = [
-            'submission_id' => 1,
-            'certificate_url' => 'https://example.com/certificate-2024-123'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('CODECHECK 2024-123', $submission->getFormattedCertificateLinkText());
-    }
-
-    public function testGetFormattedCertificateLinkTextFallbackWithoutPattern()
-    {
-        $data = [
-            'submission_id' => 1,
-            'certificate_url' => 'https://example.com/some-certificate'
-        ];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('View Certificate', $submission->getFormattedCertificateLinkText());
-    }
-
-    public function testGetFormattedCertificateLinkTextReturnsEmptyStringWhenNoUrl()
-    {
-        $data = ['submission_id' => 1];
-        $submission = new CodecheckSubmission($data);
-        
-        $this->assertSame('', $submission->getFormattedCertificateLinkText());
+        $submission = new CodecheckSubmission(['submission_id' => 1]);
+        $this->assertSame('', $submission->getDataRepository());
     }
 }

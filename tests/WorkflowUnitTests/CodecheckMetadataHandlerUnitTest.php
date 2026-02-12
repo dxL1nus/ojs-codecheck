@@ -170,7 +170,7 @@ class CodecheckMetadataHandlerUnitTest extends PKPTestCase
         $reflection = new \ReflectionClass($this->handler);
         $method = $reflection->getMethod('getAuthors');
         
-        $this->assertTrue($method->isPrivate());
+        $this->assertTrue($method->isPublic());
         $this->assertSame('getAuthors', $method->getName());
     }
 
@@ -179,7 +179,7 @@ class CodecheckMetadataHandlerUnitTest extends PKPTestCase
         $reflection = new \ReflectionClass($this->handler);
         $method = $reflection->getMethod('buildYaml');
         
-        $this->assertTrue($method->isPrivate());
+        $this->assertTrue($method->isPublic());
         $this->assertSame('buildYaml', $method->getName());
     }
 
