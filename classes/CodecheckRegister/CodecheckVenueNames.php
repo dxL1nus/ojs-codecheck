@@ -34,7 +34,7 @@ class CodecheckVenueNames
             error_log($curlReadException);
             throw $curlReadException;
         }
-        // get json Data from API Callser
+        // get json Data from API call
         $data = $codecheckApiClient->getData();
 
         // find all venue Types
