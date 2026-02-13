@@ -120,6 +120,7 @@ The plugin tracks CODECHECK progress through a status system displayed in the re
 ### Status Implementation
 
 The status is determined in `CodecheckReviewDisplay.vue` using the following logic:
+
 ```javascript
 function getStatus() {
   if (metadata.value.certificate && metadata.value.checkTime) {
@@ -145,11 +146,13 @@ function getStatus() {
 This plugin uses **Vite** for building Vue.js components.
 
 #### Install dependencies
+
 ```bash
 npm install
 ```
 
 #### Build for production
+
 ```bash
 npm run build
 ```
@@ -157,6 +160,7 @@ npm run build
 This compiles Vue components and JavaScript into the `public/` directory.
 
 #### Watch mode (development)
+
 ```bash
 npm run dev
 ```
@@ -299,6 +303,7 @@ The plugin includes comprehensive test coverage for both backend PHP code and fr
 **Option 1: Local Testing**
 
 From the plugin directory:
+
 ```bash
 cd plugins/generic/codecheck
 php ../../../lib/pkp/lib/vendor/phpunit/phpunit/phpunit --configuration phpunit.xml tests/
@@ -307,26 +312,32 @@ php ../../../lib/pkp/lib/vendor/phpunit/phpunit/phpunit --configuration phpunit.
 **Option 2: Docker/CI Environment**
 
 From the root of the OJS application directory:
+
 ```bash
 lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit.xml plugins/generic/codecheck/tests/
 ```
 
 If you want to visualize the test coverage, open the following file which is created during each test run:
+
 ```bash
 lib/pkp/tests/results/index.html
 ```
 
-**Note:** Some tests require full OJS environment and are skipped locally (database, facades, translations). They run successfully in Docker/CI.
+**Note:** Some tests require full OJS environment and are skipped locally (database, facades, translations).
+They run successfully in Docker/CI.
 
 ### Frontend Component Tests
+
 [![Component Tests](https://github.com/codecheckers/ojs-codecheck/actions/workflows/component-tests.yml/badge.svg?branch=main)](https://github.com/codecheckers/ojs-codecheck/actions/workflows/component-tests.yml)
 
 From the plugin directory:
+
 ```bash
 npm run test:component
 ```
 
 For interactive testing:
+
 ```bash
 npm run test:component:open
 ```
