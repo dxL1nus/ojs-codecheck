@@ -99,6 +99,47 @@ class CodecheckGithubRegisterApiClient
         }
     }
 
+    public function createIssueContents(
+        CertificateIdentifier $certificateIdentifier,
+        string $codecheckVenueType,
+        string $codecheckVenueName,
+        string $authorString,
+    ): array
+    {
+        $repositoryOwner = 'codecheckers';
+        $authorString = empty($authorString) ? 'New CODECHECK' : $authorString;
+        $issueTitle = $authorString . ' | ' . $certificateIdentifier->toStr();
+        $issueBody = 'Journal: `' . $this->journalName . '`<br />' . 'Submission ID: `' . $this->submissionID . '`';
+        $labelStrings = ['id assigned'];
+
+        $labelStrings[] = $codecheckVenueType;
+        $labelStrings[] = $codecheckVenueName;
+
+        return [
+            'repositoryOwner' => $repositoryOwner,
+            'title' => $issueTitle,
+            'body' => $issueBody,
+            'labels' => $labelStrings
+        ];
+    }
+
+    public function formatIssueContentsForUrl(
+        array $issueContents
+    ): array
+    {
+        foreach ($issueContents as $content) {
+            $content = preg_replace_callback(
+                '/[:\n |]/',
+                fn($m) => rawurlencode($m[0]),
+                $content
+            );
+        }
+
+        return $issueContents;
+    }
+
+    // TODO: function to create URL
+
     /**
      * Adds an Issue with the new Certificate Identifier to the CODECHECK GitHub Register
      *
@@ -110,35 +151,24 @@ class CodecheckGithubRegisterApiClient
      */
     public function addIssue(
         CertificateIdentifier $certificateIdentifier,
-        string $codecheckVenueType,
-        string $codecheckVenueName,
-        string $authorString,
+        array $issueContents
     ): string {
         $token = $_ENV['CODECHECK_REGISTER_GITHUB_TOKEN'];
 
         $this->client->authenticate($token, null, Client::AUTH_ACCESS_TOKEN);
 
-        $repositoryOwner = 'codecheckers';
-        $authorString = empty($authorString) ? 'New CODECHECK' : $authorString;
-        $issueTitle = $authorString . ' | ' . $certificateIdentifier->toStr();
-        $issueBody = 'Journal: `' . $this->journalName . '`<br />' . 'Submission ID: `' . $this->submissionID . '`';
-        $labelStrings = ['id assigned'];
-
-        $labelStrings[] = $codecheckVenueType;
-        $labelStrings[] = $codecheckVenueName;
-
         try {
             $issue = $this->client->api('issue')->create(
-                $repositoryOwner,
+                $issueContents['repositoryOwner'],
                 $this->githubRegisterRepository,
                 [
-                    'title' => $issueTitle,
-                    'body'  => $issueBody,
-                    'labels' => $labelStrings
+                    'title' => $issueContents['title'],
+                    'body'  => $issueContents['body'],
+                    'labels' => $issueContents['labels']
                 ]
             );
         } catch (\Throwable $e) {
-    throw new ApiCreateException("Error while adding the new GitHub issue with the new Certificate Identifier: " . $certificateIdentifier->toStr() . "\n" . $e->getMessage());
+            throw new ApiCreateException("Error while adding the new GitHub issue with the new Certificate Identifier: " . $certificateIdentifier->toStr() . "\n" . $e->getMessage());
         }
 
         return $issue['html_url'];
