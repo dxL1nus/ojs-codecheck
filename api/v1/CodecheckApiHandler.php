@@ -15,10 +15,10 @@ use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegis
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifierList;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifier;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenue;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterIssue;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
 
 use APP\facades\Repo;
-use CodecheckGithubRegisterIssue;
 use Illuminate\Support\Facades\DB;
 
 class CodecheckApiHandler
@@ -222,12 +222,11 @@ class CodecheckApiHandler
         if(is_string($venueType) && is_string($venueName) && is_string($authorString)) {
             // CODECHECK GitHub Issue Register API parser
             $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
+                'codecheckers',
                 'testing-dev-register', // Name of the GitHub Repository for the Register
                 $this->codecheckMetadataHandler->getSubmissionId(), // Submission ID
                 $this->request->getContext(), // The Journal Object of the Submission
             );
-
-            error_log(print_r($this->request->getContext(), true));
 
             // CODECHECK Register with list of all identifiers in range
             try {
@@ -235,13 +234,13 @@ class CodecheckApiHandler
             } catch (ApiFetchException $ae) {
                 $this->response->response([
                     'success'   => false,
-                    'error'     => $e->getMessage(),
+                    'error'     => $ae->getMessage(),
                 ], 400);
                 return;
             } catch (NoMatchingIssuesFoundException $me) {
                 $this->response->response([
                     'success'   => false,
-                    'error'     => $e->getMessage(),
+                    'error'     => $me->getMessage(),
                 ], 400);
                 return;
             }
@@ -255,18 +254,12 @@ class CodecheckApiHandler
             // create the CODECHECK Venue with the selected type and name
             $codecheckVenue = new CodecheckVenue($venueType, $venueName);
 
-            $issueContents = $codecheckGithubRegisterApiClient->createIssueContents(
-                $new_identifier,
-                $codecheckVenue->getVenueType(),
-                $codecheckVenue->getVenueName(),
-                $authorString,
-            );
-
             // Add the new issue to the CODECHECK GtiHub Register
             try {
                 $issueGithubUrl = $codecheckGithubRegisterApiClient->addIssue(
                     $new_identifier,
-                    $issueContents
+                    $codecheckVenue,
+                    $authorString
                 );
             } catch (ApiCreateException $e) {
                 // return an error result
@@ -350,6 +343,7 @@ class CodecheckApiHandler
                 $codecheckVenue,
                 $journalName,
                 $authorString,
+                $this->codecheckMetadataHandler->getSubmissionId()
             );
             
             // return a success result

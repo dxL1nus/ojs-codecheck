@@ -977,7 +977,7 @@ export default {
 
           if (data.success) {
               this.metadata.certificate = data.identifier;
-              console.log(data.newIssueUrl);
+              window.open(data.newIssueUrl);
           } else {
               this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.fail.message')}\n${data.error}`, 'error');
               console.error('Error while creating the New Issue URL:', data.error);

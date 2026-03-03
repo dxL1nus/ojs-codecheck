@@ -11,7 +11,7 @@ use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifie
 use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
-use CodecheckGithubRegisterIssue;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterIssue;
 
 // Load .env variables
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
@@ -126,7 +126,8 @@ class CodecheckGithubRegisterApiClient
             $certificateIdentifier,
             $codecheckVenue,
             $this->journalName,
-            $authorString
+            $authorString,
+            $this->submissionID
         );
 
         try {

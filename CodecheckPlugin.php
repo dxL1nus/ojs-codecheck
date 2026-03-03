@@ -41,37 +41,6 @@ class CodecheckPlugin extends GenericPlugin
             // Add hook for the Template Manager
             Hook::add('TemplateManager::display', $this->callbackTemplateManagerDisplay(...));
             
-            $metadataHandler = new CodecheckMetadataHandler($this);
-            Hook::add('LoadHandler', function($hookName, $args) use ($metadataHandler) {
-                $page = $args[0];
-                $op = $args[1];
-                                
-                if ($page === 'codecheck') {
-                    $request = Application::get()->getRequest();
-                    $submissionId = $request->getUserVar('submissionId');
-                                        
-                    if ($op === 'metadata' && $request->isGet()) {
-                        $result = $metadataHandler->getMetadata($request, $submissionId);
-                        header('Content-Type: application/json');
-                        echo json_encode($result);
-                        exit;
-                    } elseif ($op === 'metadata' && $request->isPost()) {
-                        $result = $metadataHandler->saveMetadata($request, $submissionId);
-                        header('Content-Type: application/json');
-                        echo json_encode($result);
-                        exit;
-                    } elseif ($op === 'yaml') {
-                        $result = $metadataHandler->generateYaml($request, $submissionId);
-                        header('Content-Type: application/json');
-                        echo json_encode($result);
-                        exit;
-                    }
-                    
-                }
-                
-                return false;
-            });
-            
             // Wizard fields schema
             $codecheckSchema = new Schema();
             Hook::add('Schema::get::publication', function($hookName, $args) use ($codecheckSchema) {
