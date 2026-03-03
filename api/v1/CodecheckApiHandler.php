@@ -13,6 +13,7 @@ use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegis
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifierList;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifier;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenue;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterIssue;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckYamlValidator;
 use APP\plugins\generic\codecheck\classes\Log\CodecheckLogger;
@@ -25,7 +26,6 @@ use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
 use APP\plugins\generic\codecheck\classes\Exceptions\RoleExceptions\RoleNotFoundException;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
-use CodecheckGithubRegisterIssue;
 use Illuminate\Support\Facades\DB;
 
 class CodecheckApiHandler
@@ -288,8 +288,6 @@ class CodecheckApiHandler
                 $context, // The Journal Object of the Submission
             );
 
-            CodecheckLogger::debug(print_r($this->request->getContext(), true));
-
             // CODECHECK Register with list of all identifiers in range
             try {
                 $certificateIdentifierList = CertificateIdentifierList::fromApi($codecheckGithubRegisterApiClient);
@@ -316,18 +314,12 @@ class CodecheckApiHandler
             // create the CODECHECK Venue with the selected type and name
             $codecheckVenue = new CodecheckVenue($venueType, $venueName);
 
-            $issueContents = $codecheckGithubRegisterApiClient->createIssueContents(
-                $new_identifier,
-                $codecheckVenue->getVenueType(),
-                $codecheckVenue->getVenueName(),
-                $authorString,
-            );
-
             // Add the new issue to the CODECHECK GtiHub Register
             try {
                 $issueGithubUrl = $codecheckGithubRegisterApiClient->addIssue(
                     $new_identifier,
-                    $issueContents
+                    $codecheckVenue,
+                    $authorString
                 );
             } catch (ApiCreateException $e) {
                 // return an error result
@@ -366,14 +358,20 @@ class CodecheckApiHandler
         $venueName = $postParams["venueName"];
         $authorString = $postParams["authorString"];
 
+        $context = $this->request->getContext();
+        $githubPersonalAccessToken = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_PERSONAL_ACCESS_TOKEN);
+        $githubRegisterOrganization = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_ORGANIZATION);
+        $githubRegisterRepository = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_REPOSITORY);
+
         // check if they are of type string (If not return success false over the API)
         if(is_string($venueType) && is_string($venueName) && is_string($authorString)) {
             // CODECHECK GitHub Issue Register API parser
             $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
-                'codecheckers',
-                'testing-dev-register', // Name of the GitHub Repository for the Register
+                $githubPersonalAccessToken,
+                $githubRegisterOrganization,
+                $githubRegisterRepository, // Name of the GitHub Repository for the Register
                 $this->codecheckMetadataHandler->getSubmissionId(), // Submission ID
-                $this->request->getContext(), // The Journal Object of the Submission
+                $context, // The Journal Object of the Submission
             );
 
             // CODECHECK Register with list of all identifiers in range
@@ -411,6 +409,7 @@ class CodecheckApiHandler
                 $codecheckVenue,
                 $journalName,
                 $authorString,
+                $this->codecheckMetadataHandler->getSubmissionId()
             );
             
             // return a success result
