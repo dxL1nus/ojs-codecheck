@@ -13,7 +13,6 @@ use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
 use APP\plugins\generic\codecheck\classes\Exceptions\GithubUrlParseException;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterIssue;
-use APP\plugins\generic\codecheck\classes\Exceptions\ApiUpdateException;
 
 // Load .env variables
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
