@@ -18,6 +18,7 @@ use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenue;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
 
 use APP\facades\Repo;
+use CodecheckGithubRegisterIssue;
 use Illuminate\Support\Facades\DB;
 
 class CodecheckApiHandler
@@ -308,12 +309,11 @@ class CodecheckApiHandler
         if(is_string($venueType) && is_string($venueName) && is_string($authorString)) {
             // CODECHECK GitHub Issue Register API parser
             $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
+                'codecheckers',
                 'testing-dev-register', // Name of the GitHub Repository for the Register
                 $this->codecheckMetadataHandler->getSubmissionId(), // Submission ID
                 $this->request->getContext(), // The Journal Object of the Submission
             );
-
-            error_log(print_r($this->request->getContext(), true));
 
             // CODECHECK Register with list of all identifiers in range
             try {
@@ -321,13 +321,13 @@ class CodecheckApiHandler
             } catch (ApiFetchException $ae) {
                 $this->response->response([
                     'success'   => false,
-                    'error'     => $e->getMessage(),
+                    'error'     => $ae->getMessage(),
                 ], 400);
                 return;
             } catch (NoMatchingIssuesFoundException $me) {
                 $this->response->response([
                     'success'   => false,
-                    'error'     => $e->getMessage(),
+                    'error'     => $me->getMessage(),
                 ], 400);
                 return;
             }
@@ -336,25 +336,27 @@ class CodecheckApiHandler
             $certificateIdentifierList->sortDesc();
 
             // create the new unique Identifier
-            $new_identifier = CertificateIdentifier::newUniqueIdentifier($certificateIdentifierList);
+            $newIdentifier = CertificateIdentifier::newUniqueIdentifier($certificateIdentifierList);
 
             // create the CODECHECK Venue with the selected type and name
             $codecheckVenue = new CodecheckVenue($venueType, $venueName);
 
-            $issueContents = $codecheckGithubRegisterApiClient->createIssueContents(
-                $new_identifier,
-                $codecheckVenue->getVenueType(),
-                $codecheckVenue->getVenueName(),
+            $journalName = $this->request->getContext()?->getLocalizedName() ?? 'Unknwon Journal';
+
+            $codecheckIssue = new CodecheckGithubRegisterIssue(
+                'codecheckers',
+                'testing-dev-register',
+                $newIdentifier,
+                $codecheckVenue,
+                $journalName,
                 $authorString,
             );
             
-            
-
             // return a success result
             $this->response->response([
                 'success' => true,
-                'identifier' => $new_identifier->toStr(),
-                'issueUrl' => $issueGithubUrl,
+                'identifier' => $newIdentifier->toStr(),
+                'newIssueUrl' => $codecheckIssue->getNewIssueUrl(),
             ], 200);
             return;
         } else {
