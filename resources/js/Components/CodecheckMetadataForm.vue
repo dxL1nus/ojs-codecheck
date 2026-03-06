@@ -286,72 +286,67 @@
           </p>
           <div class="certificate-identifier-section">
             <div class="certificate-identifier-input-wrapper">
-              <input
-                  type="text"
-                  v-model="metadata.certificate"
-                  :placeholder="t('plugins.generic.codecheck.identifier.label')"
-                  class="certificate-identifier-input"
-                  readonly
-              />
-              <div class="certificate-identifier-select dropdown">
-                <button class="dropbtn">{{ t('plugins.generic.codecheck.identifier.customLabels') }}
-                    <i class="fa fa-caret-down"></i>
-                </button>
-                <div class="dropdown-content">
-                  <div class="dropdown-checkbox-input" v-for="label in certificateIdentifier.customLabels" :key="label">   
-                    <input type="checkbox" v-model="certificateIdentifier.customLabelSelected" :value="label"/>
-                    <label :for="label">{{ label }}</label>
-                  </div>
-                </div>
-              </div>
-              <select
-                  v-model="certificateIdentifier.venueType"
-                  class="certificate-identifier-select certificate-identifier-venue-types"
-                  :disabled="isIdentifierReserved"
-              >
-                  <option disabled value="default" selected>{{ t('plugins.generic.codecheck.identifier.venue.type') }}</option>
-                  <option v-for="type in certificateIdentifier.venueTypes" :key="type" :value="type">
-                  {{ type }}
-                  </option>
-              </select>
-              <select
-                  v-model="certificateIdentifier.venueName"
-                  class="certificate-identifier-select certificate-identifier-venue-names"
-                  :disabled="isIdentifierReserved"
-              >
-                  <option disabled value="default" selected>{{ t('plugins.generic.codecheck.identifier.venue.name') }}</option>
-                  <option v-for="name in certificateIdentifier.venueNames" :key="name" :value="name">
-                  {{ name }}
-                  </option>
-              </select>
+                <input
+                    type="text"
+                    v-model="metadata.certificate"
+                    :placeholder="t('plugins.generic.codecheck.identifier.label')"
+                    class="certificate-identifier-input"
+                />
+                <select
+                    v-model="certificateIdentifier.venueType"
+                    class="certificate-identifier-select certificate-identifier-venue-types"
+                    :disabled="isIdentifierReserved"
+                >
+                    <option disabled value="default" selected>{{ t('plugins.generic.codecheck.identifier.venue.type') }}</option>
+                    <option v-for="type in certificateIdentifier.venueTypes" :key="type" :value="type">
+                    {{ type }}
+                    </option>
+                </select>
+                <select
+                    v-model="certificateIdentifier.venueName"
+                    class="certificate-identifier-select certificate-identifier-venue-names"
+                    :disabled="isIdentifierReserved"
+                >
+                    <option disabled value="default" selected>{{ t('plugins.generic.codecheck.identifier.venue.name') }}</option>
+                    <option v-for="name in certificateIdentifier.venueNames" :key="name" :value="name">
+                    {{ name }}
+                    </option>
+                </select>
             </div>
 
             <div class="identifier-actions" id="certificate-identifier-button-wrapper">
               <button
-                    type="button"
-                    class="pkpButton codecheck-btn certificate-identifier-button"
-                    :class="isIdentifierReserved ? 'bg-gray' : ''"
-                    :disabled="isIdentifierReserved"
-                    @click="reserveIdentifier('newIssueUrl')"
-                >
-                    {{ t('plugins.generic.codecheck.identifier.reserve.withNewIssueUrl') }}
-                </button>  
+                type="button"
+                class="pkpButton codecheck-btn certificate-identifier-button"
+                :class="isIdentifierReserved ? 'bg-gray' : ''"
+                :disabled="isIdentifierReserved"
+                @click="reserveIdentifier('newIssueUrl')"
+              >
+                {{ t('plugins.generic.codecheck.identifier.reserve.withNewIssueUrl') }}
+              </button>  
               <button
-                    type="button"
-                    class="pkpButton codecheck-btn certificate-identifier-button"
-                    :class="isIdentifierReserved ? 'bg-gray' : ''"
-                    :disabled="isIdentifierReserved"
-                    @click="reserveIdentifier('api')"
-                >
-                    {{ t('plugins.generic.codecheck.identifier.reserve.withApi') }}
-                </button>
-                <button
-                    type="button"
-                    class="pkpButton codecheck-btn pkpButton--isWarnable codecheck-btn-warning certificate-identifier-button"
-                    @click="showRemoveIdentifierModal"
-                >
-                    {{ t('plugins.generic.codecheck.identifier.remove') }}
-                </button>
+                type="button"
+                class="pkpButton codecheck-btn certificate-identifier-button"
+                :class="isIdentifierReserved ? 'bg-gray' : ''"
+                :disabled="isIdentifierReserved"
+                @click="reserveIdentifier('api')"
+              >
+                {{ t('plugins.generic.codecheck.identifier.reserve.withApi') }}
+              </button>
+              <button
+                type="button"
+                class="pkpButton codecheck-btn certificate-identifier-button"
+                @click="reserveIdentifier('linkExistingIdentifier')"
+              >
+                {{ t('plugins.generic.codecheck.identifier.reserve.linkExistingIdentifier') }}
+              </button>
+              <button
+                type="button"
+                class="pkpButton codecheck-btn pkpButton--isWarnable codecheck-btn-warning certificate-identifier-button"
+                @click="showRemoveIdentifierModal"
+              >
+                {{ t('plugins.generic.codecheck.identifier.remove') }}
+              </button>
             </div>
           </div>
         </div>
@@ -1025,7 +1020,11 @@ export default {
     },
 
     async reserveIdentifier(reserveIdentifierMode) {
-      if (this.certificateIdentifier.venueType === 'default' || this.certificateIdentifier.venueName === 'default') {
+      if (
+        (this.certificateIdentifier.venueType === 'default' || this.certificateIdentifier.venueName === 'default')
+        &&
+        reserveIdentifierMode != 'linkExistingIdentifier'
+      ) {
         alert('Please select both a Venue Type and a Venue Name.');
         return;
       }
@@ -1058,7 +1057,8 @@ export default {
                 authorString: authorString,
                 codeRepository: this.submissionData.codeRepository,
                 dataRepository: this.submissionData.dataRepository,
-                doi: this.submissionData.doi
+                doi: this.submissionData.doi,
+                identifier: this.metadata.certificate
               }),
           });
           const data = await response.json();
@@ -1078,6 +1078,15 @@ export default {
             if (data.success) {
               this.metadata.certificate = data.identifier;
               window.open(data.issueUrl);
+            } else {
+              this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.fail.message')}\n${data.error}`, 'error');
+              console.error('Error while creating the New Issue URL:', data.error);
+            }
+          } else if (reserveIdentifierMode == 'linkExistingIdentifier') {
+            if (data.success) {
+              this.certificateIdentifier.issueUrl = data.issueUrl;
+              this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.success.message')}: ${data.identifier}`, 'success');
+              console.log('New Certificate Identifier reserved: ', data.identifier, data.issueUrl);
             } else {
               this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.fail.message')}\n${data.error}`, 'error');
               console.error('Error while creating the New Issue URL:', data.error);

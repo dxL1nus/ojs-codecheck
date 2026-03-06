@@ -278,35 +278,41 @@ class CodecheckApiHandler
             $authorString = null;
         }
 
+        // CODECHECK GitHub Issue Register API parser
+        $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
+            $githubPersonalAccessToken,
+            $githubRegisterOrganization,
+            $githubRegisterRepository, // Name of the GitHub Repository for the Register
+            $this->codecheckMetadataHandler->getSubmissionId(), // Submission ID
+            $context, // The Journal Object of the Submission
+        );
+
+        // CODECHECK Register with list of all identifiers in range
+        try {
+            $certificateIdentifierList = CertificateIdentifierList::fromApi($codecheckGithubRegisterApiClient);
+        } catch (ApiFetchException $ae) {
+            $this->response->response([
+                'success'   => false,
+                'error'     => $ae->getMessage(),
+            ], 400);
+            return;
+        } catch (NoMatchingIssuesFoundException $me) {
+            $this->response->response([
+                'success'   => false,
+                'error'     => $me->getMessage(),
+            ], 400);
+            return;
+        }
+
+        if($reserveIdentifierMode == 'linkExistingIdentifier') {
+            $identifierStr = $postParams["identifier"];
+            $this->linkExistingIdentifier($identifierStr, $certificateIdentifierList);
+            return;
+        }
+
         // check if they are of type string (If not return success false over the API)
         if(is_string($venueType) && is_string($venueName) && is_string($authorString)) {
-            // CODECHECK GitHub Issue Register API parser
-            $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
-                $githubPersonalAccessToken,
-                $githubRegisterOrganization,
-                $githubRegisterRepository, // Name of the GitHub Repository for the Register
-                $this->codecheckMetadataHandler->getSubmissionId(), // Submission ID
-                $context, // The Journal Object of the Submission
-            );
-
-            // CODECHECK Register with list of all identifiers in range
-            try {
-                $certificateIdentifierList = CertificateIdentifierList::fromApi($codecheckGithubRegisterApiClient);
-            } catch (ApiFetchException $ae) {
-                $this->response->response([
-                    'success'   => false,
-                    'error'     => $ae->getMessage(),
-                ], 400);
-                return;
-            } catch (NoMatchingIssuesFoundException $me) {
-                $this->response->response([
-                    'success'   => false,
-                    'error'     => $me->getMessage(),
-                ], 400);
-                return;
-            }
-
-            // print Certificate Identifier list
+            // sort Certificate Identifier list descending
             $certificateIdentifierList->sortDesc();
 
             // create the new unique Identifier
@@ -416,6 +422,39 @@ class CodecheckApiHandler
         );
 
         return $codecheckIssue->getNewIssueUrl();
+    }
+
+    private function linkExistingIdentifier(
+        string $identifierStr,
+        CertificateIdentifierList $certificateIdentifierList
+    ) {
+        $title =  "a | " . $identifierStr;
+        $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
+        if($rawIdentifier == null) {
+            $this->response->response([
+                'success'   => false,
+                'identifier' => $identifierStr,
+                'error'     => "The identifier: " . $identifierStr . " isn't matching the required format (YYYY-NNN or YYYY-NNN/YYYY-NNN).",
+            ], 400);
+            return;
+        }
+        $identifier = CertificateIdentifier::fromStr($rawIdentifier);
+        $issueUrl = $certificateIdentifierList->getIssueUrlByIdentifier($identifier);
+        if($issueUrl != null) {
+            $this->response->response([
+                'success' => true,
+                'identifier' => $identifier->toStr(),
+                'issueUrl' => $issueUrl,
+            ], 200);
+            return;
+        }
+
+        $this->response->response([
+            'success'   => false,
+            'identifier' => $identifierStr,
+            'error'     => "The certificate with the Identifier: ". $identifierStr . " doesn't exist in the GitHub Register.",
+        ], 404);
+        return;
     }
 
     /**
