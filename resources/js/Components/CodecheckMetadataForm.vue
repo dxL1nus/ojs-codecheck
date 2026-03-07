@@ -1037,10 +1037,13 @@ export default {
                 venueType: this.certificateIdentifier.venueType,
                 venueName: this.certificateIdentifier.venueName,
                 customLabels: this.certificateIdentifier.customLabelSelected,
-                authorString: authorString,
-                codeRepository: this.submissionData.codeRepository,
-                dataRepository: this.submissionData.dataRepository,
-                doi: this.submissionData.doi,
+                submission: {
+                  authorString: authorString,
+                  codeRepository: this.submissionData.codeRepository,
+                  dataRepository: this.submissionData.dataRepository,
+                  title: this.submissionData.title,
+                  doi: this.submissionData.doi,
+                },
                 identifier: this.metadata.certificate
               }),
           });
