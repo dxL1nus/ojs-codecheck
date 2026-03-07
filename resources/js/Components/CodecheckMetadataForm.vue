@@ -942,10 +942,13 @@ export default {
                 reserveIdentifierMode: reserveIdentifierMode,
                 venueType: this.certificateIdentifier.venueType,
                 venueName: this.certificateIdentifier.venueName,
-                authorString: authorString,
-                codeRepository: this.submissionData.codeRepository,
-                dataRepository: this.submissionData.dataRepository,
-                doi: this.submissionData.doi,
+                submission: {
+                  authorString: authorString,
+                  codeRepository: this.submissionData.codeRepository,
+                  dataRepository: this.submissionData.dataRepository,
+                  title: this.submissionData.title,
+                  doi: this.submissionData.doi,
+                },
                 identifier: this.metadata.certificate
               }),
           });

@@ -219,10 +219,6 @@ class CodecheckApiHandler
             return;
         }
 
-        $venueType = $postParams["venueType"];
-        $venueName = $postParams["venueName"];
-        $authorString = $postParams["authorString"];
-
         // CODECHECK GitHub Issue Register API parser
         $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
             'codecheckers',
@@ -254,8 +250,14 @@ class CodecheckApiHandler
             return;
         }
 
+        $venueType = $postParams["venueType"];
+        $venueName = $postParams["venueName"];
+        $submissionData = $postParams["submission"];
+        $authorString = $submissionData["authorString"];
+        $articleTitle = $submissionData["title"];
+
         // check if they are of type string (If not return success false over the API)
-        if(is_string($venueType) && is_string($venueName) && is_string($authorString)) {
+        if(is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle)) {
             // sort Certificate Identifier list descending
             $certificateIdentifierList->sortDesc();
 
@@ -271,6 +273,7 @@ class CodecheckApiHandler
                         $codecheckGithubRegisterApiClient,
                         $newIdentifier,
                         $codecheckVenue,
+                        $articleTitle,
                         $authorString
                     );
                     break;
@@ -279,6 +282,7 @@ class CodecheckApiHandler
                     $issueGithubUrl = $this->reserveIdentifierWithNewIssueUrl(
                         $newIdentifier,
                         $codecheckVenue,
+                        $articleTitle,
                         $authorString
                     );
                     break;
@@ -319,6 +323,7 @@ class CodecheckApiHandler
         CodecheckGithubRegisterApiClient $codecheckGithubRegisterApiClient,
         CertificateIdentifier $identifier,
         CodecheckVenue $venue,
+        string $articleTitle,
         string $authorString
 
     ): ?string
@@ -328,6 +333,7 @@ class CodecheckApiHandler
             $issueGithubUrl = $codecheckGithubRegisterApiClient->addIssue(
                 $identifier,
                 $venue,
+                $articleTitle,
                 $authorString
             );
         } catch (ApiCreateException $e) {
@@ -350,6 +356,7 @@ class CodecheckApiHandler
     private function reserveIdentifierWithNewIssueUrl(
         CertificateIdentifier $identifier,
         CodecheckVenue $venue,
+        string $articleTitle,
         string $authorString
     ): string
     {
@@ -360,6 +367,7 @@ class CodecheckApiHandler
             'testing-dev-register',
             $identifier,
             $venue,
+            $articleTitle,
             $journalName,
             $authorString,
             $this->codecheckMetadataHandler->getSubmissionId()
