@@ -272,12 +272,13 @@
                     type="text"
                     v-model="metadata.certificate"
                     :placeholder="t('plugins.generic.codecheck.identifier.label')"
+                    :readonly="certificateIdentifier.isReserved"
                     class="certificate-identifier-input"
                 />
                 <select
                     v-model="certificateIdentifier.venueType"
                     class="certificate-identifier-select certificate-identifier-venue-types"
-                    :disabled="isIdentifierReserved"
+                    :disabled="identifierIsInLinkingProcess || certificateIdentifier.isReserved"
                 >
                     <option disabled value="default" selected>{{ t('plugins.generic.codecheck.identifier.venue.type') }}</option>
                     <option v-for="type in certificateIdentifier.venueTypes" :key="type" :value="type">
@@ -287,7 +288,7 @@
                 <select
                     v-model="certificateIdentifier.venueName"
                     class="certificate-identifier-select certificate-identifier-venue-names"
-                    :disabled="isIdentifierReserved"
+                    :disabled="identifierIsInLinkingProcess || certificateIdentifier.isReserved"
                 >
                     <option disabled value="default" selected>{{ t('plugins.generic.codecheck.identifier.venue.name') }}</option>
                     <option v-for="name in certificateIdentifier.venueNames" :key="name" :value="name">
@@ -300,8 +301,8 @@
               <button
                 type="button"
                 class="pkpButton codecheck-btn certificate-identifier-button"
-                :class="isIdentifierReserved ? 'bg-gray' : ''"
-                :disabled="isIdentifierReserved"
+                :class="identifierIsInLinkingProcess || certificateIdentifier.isReserved ? 'bg-gray' : ''"
+                :disabled="identifierIsInLinkingProcess || certificateIdentifier.isReserved"
                 @click="reserveIdentifier('newIssueUrl')"
               >
                 {{ t('plugins.generic.codecheck.identifier.reserve.withNewIssueUrl') }}
@@ -309,8 +310,8 @@
               <button
                 type="button"
                 class="pkpButton codecheck-btn certificate-identifier-button"
-                :class="isIdentifierReserved ? 'bg-gray' : ''"
-                :disabled="isIdentifierReserved"
+                :class="identifierIsInLinkingProcess || certificateIdentifier.isReserved ? 'bg-gray' : ''"
+                :disabled="identifierIsInLinkingProcess || certificateIdentifier.isReserved"
                 @click="reserveIdentifier('api')"
               >
                 {{ t('plugins.generic.codecheck.identifier.reserve.withApi') }}
@@ -318,6 +319,8 @@
               <button
                 type="button"
                 class="pkpButton codecheck-btn certificate-identifier-button"
+                :class="certificateIdentifier.isReserved ? 'bg-gray' : ''"
+                :disabled="certificateIdentifier.isReserved"
                 @click="reserveIdentifier('linkExistingIdentifier')"
               >
                 {{ t('plugins.generic.codecheck.identifier.reserve.linkExistingIdentifier') }}
@@ -397,13 +400,13 @@ export default {
         dataAvailabilityStatement: ''
       },
       // Further information neccesary for retrieving and reserving the Certificate Identifier
-      // rgb(208 10 108 / var(--tw-text-opacity, 1))
       certificateIdentifier: {
         venueType: 'default',
         venueName: 'default',
         venueTypes: [],
         venueNames: [],
         issueUrl: '',
+        isReserved: false,
       },
       metadata: {
         version: 'latest',
@@ -427,7 +430,7 @@ export default {
              this.metadata.certificate;
     },
     // variable that stores if the Identifier was set and thus buttons should be disabled
-    isIdentifierReserved() {
+    identifierIsInLinkingProcess() {
       return this.metadata.certificate.trim() !== '';
     }
   },
@@ -952,6 +955,7 @@ export default {
             if (data.success) {
               this.metadata.certificate = data.identifier;
               this.certificateIdentifier.issueUrl = data.issueUrl;
+              this.certificateIdentifier.isReserved = true;
               this.$emit('update', this.metadata.certificate);
               this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.success.message')}: ${data.identifier}`, 'success');
               console.log('New Certificate Identifier reserved: ', data.identifier, data.issueUrl);
@@ -962,6 +966,7 @@ export default {
           } else if (reserveIdentifierMode == 'newIssueUrl') {
             if (data.success) {
               this.metadata.certificate = data.identifier;
+              this.certificateIdentifier.isReserved = true;
               window.open(data.issueUrl);
             } else {
               this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.fail.message')}\n${data.error}`, 'error');
@@ -970,6 +975,7 @@ export default {
           } else if (reserveIdentifierMode == 'linkExistingIdentifier') {
             if (data.success) {
               this.certificateIdentifier.issueUrl = data.issueUrl;
+              this.certificateIdentifier.isReserved = true;
               this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.success.message')}: ${data.identifier}`, 'success');
               console.log('New Certificate Identifier reserved: ', data.identifier, data.issueUrl);
             } else {
@@ -989,6 +995,7 @@ export default {
     removeIdentifier(close) {
       this.metadata.certificate = '';
       this.certificateIdentifier.issueUrl = '';
+      this.certificateIdentifier.isReserved = false;
       this.$emit('update', this.metadata.certificate);
 
       close();
