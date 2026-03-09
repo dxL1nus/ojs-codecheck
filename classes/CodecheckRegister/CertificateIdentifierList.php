@@ -57,7 +57,7 @@ class CertificateIdentifierList
             }
 
             // append to all identifiers in new Register
-            $newCertificateIdentifierList->appendToCertificateIdList($rawIdentifier, $issue['html_url']);
+            $newCertificateIdentifierList->appendToCertificateIdList($rawIdentifier, $issue);
         }
 
         // return the new Register
@@ -100,10 +100,10 @@ class CertificateIdentifierList
      * Appends a raw Identifier to the list of Certificate Identifiers
      * 
      * @param string $rawidentifier The raw Identifier to be appended
-     * @param string $issueUrl The Issue URL of the raw Identifier to be appended
+     * @param array $issue The GitHub Issue information of the raw Identifier to be appended
      * @return void
      */
-    public function appendToCertificateIdList(string $rawIdentifier, string $issueUrl): void
+    public function appendToCertificateIdList(string $rawIdentifier, array $issue): void
     {
         // list of certificate identifiers in range
         $idRange = [];
@@ -122,7 +122,8 @@ class CertificateIdentifierList
                 // append new identifier
                 $idRange[] = [
                     'identifier' => $newIdentifier,
-                    'issueUrl' => $issueUrl
+                    'issueUrl' => $issue['html_url'],
+                    'issueNumber' => $issue['number']
                 ];
             }
         }
@@ -131,7 +132,8 @@ class CertificateIdentifierList
             $newIdentifier = CertificateIdentifier::fromStr($rawIdentifier);
             $idRange[] = [
                 'identifier' => $newIdentifier,
-                'issueUrl' => $issueUrl
+                'issueUrl' => $issue['html_url'],
+                'issueNumber' => $issue['number']
             ];
         }
 
@@ -209,11 +211,11 @@ class CertificateIdentifierList
         return $returnStr;
     }
 
-    public function getIssueUrlByIdentifier(CertificateIdentifier $identifier): ?string
+    public function getIssueInformationByIdentifier(CertificateIdentifier $identifier): ?array
     {
         foreach ($this->uniqueArray->toArray() as $identifierInformation) {
             if($identifierInformation['identifier']->toStr() == $identifier->toStr()){
-                return $identifierInformation['issueUrl'];
+                return $identifierInformation;
             }
         }
 

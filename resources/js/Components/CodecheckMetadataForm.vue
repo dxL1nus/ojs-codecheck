@@ -406,6 +406,7 @@ export default {
         venueTypes: [],
         venueNames: [],
         issueUrl: '',
+        issueNumber: null,
         isReserved: false,
         isLinked: false,
       },
@@ -496,6 +497,10 @@ export default {
             report: data.codecheck.report || data.codecheck.report || '',
             additionalContent: data.codecheck.additionalContent || data.codecheck.additional_content || ''
           };
+
+          this.certificateIdentifier.issueUrl = data.codecheck.issueUrl;
+          this.certificateIdentifier.issueNumber = data.codecheck.issueNumber;
+          this.certificateIdentifier.isLinked = true ? data.codecheck.issueUrl && data.codecheck.issueNumber : false;
           
           if (data.codecheck.repository) {
             this.repositories = data.codecheck.repository.split(',').map(r => r.trim()).filter(r => r);
@@ -647,6 +652,8 @@ export default {
           source: this.metadata.source,
           codecheckers: this.metadata.codecheckers,
           certificate: this.metadata.certificate,
+          issueUrl: this.certificateIdentifier.issueUrl,
+          issueNumber: this.certificateIdentifier.issueNumber,
           check_time: this.metadata.check_time,
           summary: this.metadata.summary,
           report: this.metadata.report,
@@ -959,10 +966,11 @@ export default {
             if (data.success) {
               this.metadata.certificate = data.identifier;
               this.certificateIdentifier.issueUrl = data.issueUrl;
+              this.certificateIdentifier.issueNumber = data.issueNumber;
               this.certificateIdentifier.isReserved = true;
               this.$emit('update', this.metadata.certificate);
               this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.success.message')}: ${data.identifier}`, 'success');
-              console.log('New Certificate Identifier reserved: ', data.identifier, data.issueUrl);
+              console.log('New Certificate Identifier reserved: ', data.identifier, data.issueUrl, data.issueNumber);
             } else {
               this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.fail.message')}\n${data.error}`, 'error');
               console.error('Error while reserving the Certificate Identifier:', data.error);
@@ -980,9 +988,10 @@ export default {
           } else if (reserveIdentifierMode == 'linkExistingIdentifier') {
             if (data.success) {
               this.certificateIdentifier.issueUrl = data.issueUrl;
+              this.certificateIdentifier.issueNumber = data.issueNumber;
               this.certificateIdentifier.isLinked = true;
               this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.linkExistingIdentifier.success.message')}: ${data.identifier}`, 'success');
-              console.log('The GitHub Issue was linked to OJS with the Certificate Identifier: ', data.identifier, data.issueUrl);
+              console.log('The GitHub Issue was linked to OJS with the Certificate Identifier: ', data.identifier, data.issueUrl, data.issueNumber);
             } else {
               this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.linkExistingIdentifier.fail.message')}\n${data.error}`, 'error');
               console.error('Error while linking an existing GitHub Issue: ', data.error);
@@ -1068,7 +1077,7 @@ export default {
         this.showMessage(this.t('plugins.generic.codecheck.validation.certificateRequired'), 'error');
         return false;
       }
-      if(!this.certificateIdentifier.isLinked && !this.certificateIdentifier.issueUrl) {
+      if(!this.certificateIdentifier.isLinked && !this.certificateIdentifier.issueUrl && !this.certificateIdentifier.issueNumber) {
         this.showMessage(this.t('plugins.generic.codecheck.validation.githubIssueLinkRequired'), 'error');
         return false;
       };
