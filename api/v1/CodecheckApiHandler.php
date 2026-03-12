@@ -260,9 +260,11 @@ class CodecheckApiHandler
         $submissionData = $postParams["submission"];
         $authorString = $submissionData["authorString"];
         $articleTitle = $submissionData["title"];
+        $repositories = $postParams["repositories"];
+        $codecheckers = $postParams["codecheckers"];
 
         // check if they are of type string (If not return success false over the API)
-        if(is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle)) {
+        if(is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle) && is_array($repositories) && is_array($codecheckers)) {
             // sort Certificate Identifier list descending
             $certificateIdentifierList->sortDesc();
 
@@ -279,7 +281,9 @@ class CodecheckApiHandler
                         $newIdentifier,
                         $codecheckVenue,
                         $articleTitle,
-                        $authorString
+                        $authorString,
+                        $codecheckers,
+                        $repositories
                     );
                     $issueGithubUrl = $issue['html_url'];
                     $issueNumber = $issue['number'];
@@ -290,7 +294,9 @@ class CodecheckApiHandler
                         $newIdentifier,
                         $codecheckVenue,
                         $articleTitle,
-                        $authorString
+                        $authorString,
+                        $codecheckers,
+                        $repositories
                     );
                     break;
 
@@ -345,8 +351,10 @@ class CodecheckApiHandler
         $authorString = $submissionData["authorString"];
         $articleTitle = $submissionData["title"];
         $identifierStr = $postParams["identifier"];
+        $repositories = $postParams["repositories"];
+        $codecheckers = $postParams["codecheckers"];
 
-        if(is_string($identifierStr) && is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle)) {
+        if(is_string($identifierStr) && is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle) && is_array($repositories) && is_array($codecheckers)) {
             $identifier = CertificateIdentifier::fromStr($identifierStr);
             $codecheckVenue = new CodecheckVenue($venueType, $venueName);
             $updatedIssue = $codecheckGithubRegisterApiClient->updateIssue(
@@ -354,7 +362,9 @@ class CodecheckApiHandler
                 $identifier,
                 $codecheckVenue,
                 $articleTitle,
-                $authorString
+                $authorString,
+                $codecheckers,
+                $repositories
             );
 
             # TODO: Check if the update function worked and return JSON Error if not
@@ -386,8 +396,9 @@ class CodecheckApiHandler
         CertificateIdentifier $identifier,
         CodecheckVenue $venue,
         string $articleTitle,
-        string $authorString
-
+        string $authorString,
+        array $codecheckers,
+        array $repositories
     ): ?array
     {
         // Add the new issue to the CODECHECK GtiHub Register
@@ -396,7 +407,9 @@ class CodecheckApiHandler
                 $identifier,
                 $venue,
                 $articleTitle,
-                $authorString
+                $authorString,
+                $codecheckers,
+                $repositories
             );
         } catch (ApiCreateException $e) {
             // return an error result
@@ -419,7 +432,9 @@ class CodecheckApiHandler
         CertificateIdentifier $identifier,
         CodecheckVenue $venue,
         string $articleTitle,
-        string $authorString
+        string $authorString,
+        array $codecheckers,
+        array $repositories
     ): string
     {
         $journalName = $this->request->getContext()?->getLocalizedName() ?? 'Unknwon Journal';
@@ -432,7 +447,9 @@ class CodecheckApiHandler
             $articleTitle,
             $journalName,
             $authorString,
-            $this->codecheckMetadataHandler->getSubmissionId()
+            $this->codecheckMetadataHandler->getSubmissionId(),
+            $codecheckers,
+            $repositories
         );
 
         return $codecheckIssue->getNewIssueUrl();

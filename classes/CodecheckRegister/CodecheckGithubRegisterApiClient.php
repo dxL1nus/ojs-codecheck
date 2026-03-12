@@ -116,7 +116,9 @@ class CodecheckGithubRegisterApiClient
         CertificateIdentifier $certificateIdentifier,
         CodecheckVenue $codecheckVenue,
         string $paperTitle,
-        string $authorString
+        string $authorString,
+        array $codecheckers,
+        array $repositories
     ): array {
         $token = $_ENV['CODECHECK_REGISTER_GITHUB_TOKEN'];
 
@@ -130,7 +132,9 @@ class CodecheckGithubRegisterApiClient
             $paperTitle,
             $this->journalName,
             $authorString,
-            $this->submissionID
+            $this->submissionID,
+            $codecheckers,
+            $repositories
         );
 
         try {
@@ -165,7 +169,9 @@ class CodecheckGithubRegisterApiClient
         CertificateIdentifier $certificateIdentifier,
         CodecheckVenue $codecheckVenue,
         string $paperTitle,
-        string $authorString
+        string $authorString,
+        array $codecheckers,
+        array $repositories
     ): array {
         $token = $_ENV['CODECHECK_REGISTER_GITHUB_TOKEN'];
 
@@ -179,7 +185,9 @@ class CodecheckGithubRegisterApiClient
             $paperTitle,
             $this->journalName,
             $authorString,
-            $this->submissionID
+            $this->submissionID,
+            $codecheckers,
+            $repositories
         );
 
         $issueContents = [
