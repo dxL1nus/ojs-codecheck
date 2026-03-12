@@ -250,6 +250,22 @@ class CodecheckApiHandler
         ], 200);
     }
 
+    private function getAuthorStringBasedOnAuthorAnonymity(): string|null
+    {
+        $postParams = json_decode(file_get_contents('php://input'), true);
+        $submissionData = $postParams["submission"];
+        $authorString = $submissionData["authorString"];
+
+        $isAuthorStringEnabled = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_AUTHOR_ANONYMITY);
+
+        // if Authors should be Anonymous/ if no Author string was given, set it to null
+        if(!$isAuthorStringEnabled || !is_string($authorString)) {
+            $authorString = null;
+        }
+
+        return $authorString;
+    }
+
     /**
      * This reserves a new Identifier
      * 
@@ -270,20 +286,17 @@ class CodecheckApiHandler
 
         $venueType = $postParams["venueType"];
         $venueName = $postParams["venueName"];
-        $authorString = $postParams["authorString"];
         $submissionData = $postParams["submission"];
         $articleTitle = $submissionData["title"];
+        $repositories = $postParams["repositories"];
+        $codecheckers = $postParams["codecheckers"];
 
         $context = $this->request->getContext();
         $githubPersonalAccessToken = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_PERSONAL_ACCESS_TOKEN);
         $githubRegisterOrganization = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_ORGANIZATION);
         $githubRegisterRepository = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_REPOSITORY);
-        $isAuthorStringEnabled = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_AUTHOR_ANONYMITY);
 
-        // if Authors should be Anonymous/ if no Author string was given, set it to null
-        if(!$isAuthorStringEnabled || !is_string($authorString)) {
-            $authorString = null;
-        }
+        $authorString = $this->getAuthorStringBasedOnAuthorAnonymity();
 
         // CODECHECK GitHub Issue Register API parser
         $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
@@ -318,7 +331,7 @@ class CodecheckApiHandler
         }
 
         // check if they are of type string (If not return success false over the API)
-        if(is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle)) {
+        if(is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle) && is_array($repositories) && is_array($codecheckers)) {
             // sort Certificate Identifier list descending
             $certificateIdentifierList->sortDesc();
 
@@ -335,7 +348,9 @@ class CodecheckApiHandler
                         $newIdentifier,
                         $codecheckVenue,
                         $articleTitle,
-                        $authorString
+                        $authorString,
+                        $codecheckers,
+                        $repositories
                     );
                     $issueGithubUrl = $issue['html_url'];
                     $issueNumber = $issue['number'];
@@ -346,7 +361,9 @@ class CodecheckApiHandler
                         $newIdentifier,
                         $codecheckVenue,
                         $articleTitle,
-                        $authorString
+                        $authorString,
+                        $codecheckers,
+                        $repositories
                     );
                     break;
 
@@ -386,23 +403,32 @@ class CodecheckApiHandler
             # TODO: JSON Error Response
             return;
         }
-        
-        // CODECHECK GitHub Issue Register API parser
-        $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
-            'codecheckers',
-            'testing-dev-register', // Name of the GitHub Repository for the Register
-            $this->codecheckMetadataHandler->getSubmissionId(), // Submission ID
-            $this->request->getContext(), // The Journal Object of the Submission
-        );
 
         $venueType = $postParams["venueType"];
         $venueName = $postParams["venueName"];
         $submissionData = $postParams["submission"];
-        $authorString = $submissionData["authorString"];
         $articleTitle = $submissionData["title"];
         $identifierStr = $postParams["identifier"];
+        $repositories = $postParams["repositories"];
+        $codecheckers = $postParams["codecheckers"];
 
-        if(is_string($identifierStr) && is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle)) {
+        $context = $this->request->getContext();
+        $githubPersonalAccessToken = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_PERSONAL_ACCESS_TOKEN);
+        $githubRegisterOrganization = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_ORGANIZATION);
+        $githubRegisterRepository = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_REPOSITORY);
+
+        $authorString = $this->getAuthorStringBasedOnAuthorAnonymity();
+
+        // CODECHECK GitHub Issue Register API parser
+        $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
+            $githubPersonalAccessToken,
+            $githubRegisterOrganization,
+            $githubRegisterRepository, // Name of the GitHub Repository for the Register
+            $this->codecheckMetadataHandler->getSubmissionId(), // Submission ID
+            $context, // The Journal Object of the Submission
+        );
+
+        if(is_string($identifierStr) && is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle) && is_array($repositories) && is_array($codecheckers)) {
             $identifier = CertificateIdentifier::fromStr($identifierStr);
             $codecheckVenue = new CodecheckVenue($venueType, $venueName);
             $updatedIssue = $codecheckGithubRegisterApiClient->updateIssue(
@@ -410,7 +436,9 @@ class CodecheckApiHandler
                 $identifier,
                 $codecheckVenue,
                 $articleTitle,
-                $authorString
+                $authorString,
+                $codecheckers,
+                $repositories
             );
 
             # TODO: Check if the update function worked and return JSON Error if not
@@ -442,8 +470,9 @@ class CodecheckApiHandler
         CertificateIdentifier $identifier,
         CodecheckVenue $venue,
         string $articleTitle,
-        string $authorString
-
+        string $authorString,
+        array $codecheckers,
+        array $repositories
     ): ?array
     {
         // Add the new issue to the CODECHECK GtiHub Register
@@ -452,7 +481,9 @@ class CodecheckApiHandler
                 $identifier,
                 $venue,
                 $articleTitle,
-                $authorString
+                $authorString,
+                $codecheckers,
+                $repositories
             );
         } catch (ApiCreateException $e) {
             // return an error result
@@ -475,7 +506,9 @@ class CodecheckApiHandler
         CertificateIdentifier $identifier,
         CodecheckVenue $venue,
         string $articleTitle,
-        string $authorString
+        string $authorString,
+        array $codecheckers,
+        array $repositories
     ): string
     {
         $journalName = $this->request->getContext()?->getLocalizedName() ?? 'Unknwon Journal';
@@ -488,7 +521,9 @@ class CodecheckApiHandler
             $articleTitle,
             $journalName,
             $authorString,
-            $this->codecheckMetadataHandler->getSubmissionId()
+            $this->codecheckMetadataHandler->getSubmissionId(),
+            $codecheckers,
+            $repositories
         );
 
         return $codecheckIssue->getNewIssueUrl();
