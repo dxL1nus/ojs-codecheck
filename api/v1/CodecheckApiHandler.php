@@ -7,12 +7,9 @@ use APP\core\Request;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
-use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenueTypes;
-use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenueNames;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterApiClient;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifierList;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifier;
-use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenue;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterIssue;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckYamlValidator;
@@ -26,6 +23,7 @@ use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
 use APP\plugins\generic\codecheck\classes\Exceptions\RoleExceptions\RoleNotFoundException;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
+use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckIssueLabels;
 use Illuminate\Support\Facades\DB;
 
 class CodecheckApiHandler
@@ -61,9 +59,9 @@ class CodecheckApiHandler
         $this->endpoints = [
             'GET' => [
                 [
-                    'route' => 'venue',
-                    'handler' => [$this, 'getVenueData'],
-                    'roles' => $roles->readMetadata(),
+                    'route' => 'labels',
+                    'handler' => [$this, 'getCodecheckIssueLabels'],
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'metadata',
@@ -211,42 +209,26 @@ class CodecheckApiHandler
     }
 
     /**
-     * Gets Venue Types and Venue Names
+     * Gets the Issue Labels of the CODECHECK API
      * 
      * @return void
      */
-    private function getVenueData(): void
+    private function getCodecheckIssueLabels(): void
     {   
         try {
-            $codecheckVenueTypes = new CodecheckVenueTypes();
+            $codecheckIssueLabels = CodecheckIssueLabels::fromApi("https://codecheck.org.uk/register/venues/index.json");
         } catch (\Throwable $e) {
-            JsonResponse::staticResponse([
+            $this->response->response([
                 'success'   => false,
                 'error'     => "Error while fetching the Venue Types: " . $e->getMessage(),
             ], 400);
             return;
         }
 
-        try {
-            $codecheckVenueNames = new CodecheckVenueNames();
-        } catch (\Throwable $e) {
-            JsonResponse::staticResponse([
-                'success'   => false,
-                'error'     => "Error while fetching the Venue Names: " . $e->getMessage(),
-            ], 400);
-            return;
-        }
-
-        // get the github custom labels specified in the plugin settings form
-        $context = $this->request->getContext();
-        $githubCustomLabels = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_CUSTOM_LABELS);
-
-        // Serve the getVenueData API route
-        JsonResponse::staticResponse([
+        // Serve the getCodecheckIssueLabels API route
+        $this->response->response([
             'success' => true,
-            'venueTypes' => $codecheckVenueTypes->get()->toArray(),
-            'venueNames' => $codecheckVenueNames->get()->toArray(),
-            'customLabels' => $githubCustomLabels,
+            'labels' => $codecheckIssueLabels->get()->toArray(),
         ], 200);
     }
 
@@ -284,8 +266,7 @@ class CodecheckApiHandler
             return;
         }
 
-        $venueType = $postParams["venueType"];
-        $venueName = $postParams["venueName"];
+        $issueLabelArray = $postParams["labels"];
         $submissionData = $postParams["submission"];
         $articleTitle = $submissionData["title"];
         $repositories = $postParams["repositories"];
@@ -331,22 +312,22 @@ class CodecheckApiHandler
         }
 
         // check if they are of type string (If not return success false over the API)
-        if(is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle) && is_array($repositories) && is_array($codecheckers)) {
+        if(is_array($issueLabelArray) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle) && is_array($repositories) && is_array($codecheckers)) {
             // sort Certificate Identifier list descending
             $certificateIdentifierList->sortDesc();
 
             // create the new unique Identifier
             $newIdentifier = CertificateIdentifier::newUniqueIdentifier($certificateIdentifierList);
 
-            // create the CODECHECK Venue with the selected type and name
-            $codecheckVenue = new CodecheckVenue($venueType, $venueName);
+            // create the CODECHECK Issue Labels with the selected issue labels
+            $codecheckIssueLabels = new CodecheckIssueLabels($issueLabelArray);
 
             switch ($reserveIdentifierMode) {
                 case 'api':
                     $issue = $this->reserveIdentifierWithApi(
                         $codecheckGithubRegisterApiClient,
                         $newIdentifier,
-                        $codecheckVenue,
+                        $codecheckIssueLabels,
                         $articleTitle,
                         $authorString,
                         $codecheckers,
@@ -359,7 +340,7 @@ class CodecheckApiHandler
                 case 'newIssueUrl':
                     $issueGithubUrl = $this->reserveIdentifierWithNewIssueUrl(
                         $newIdentifier,
-                        $codecheckVenue,
+                        $codecheckIssueLabels,
                         $articleTitle,
                         $authorString,
                         $codecheckers,
@@ -404,8 +385,7 @@ class CodecheckApiHandler
             return;
         }
 
-        $venueType = $postParams["venueType"];
-        $venueName = $postParams["venueName"];
+        $issueLabelArray = $postParams["labels"];
         $submissionData = $postParams["submission"];
         $articleTitle = $submissionData["title"];
         $identifierStr = $postParams["identifier"];
@@ -428,13 +408,13 @@ class CodecheckApiHandler
             $context, // The Journal Object of the Submission
         );
 
-        if(is_string($identifierStr) && is_string($venueType) && is_string($venueName) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle) && is_array($repositories) && is_array($codecheckers)) {
+        if(is_string($identifierStr) && is_array($issueLabelArray) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle) && is_array($repositories) && is_array($codecheckers)) {
             $identifier = CertificateIdentifier::fromStr($identifierStr);
-            $codecheckVenue = new CodecheckVenue($venueType, $venueName);
+            $codecheckIssueLabels = new CodecheckIssueLabels($issueLabelArray);
             $updatedIssue = $codecheckGithubRegisterApiClient->updateIssue(
                 $issue['number'],
                 $identifier,
-                $codecheckVenue,
+                $codecheckIssueLabels,
                 $articleTitle,
                 $authorString,
                 $codecheckers,
@@ -468,7 +448,7 @@ class CodecheckApiHandler
     private function reserveIdentifierWithApi(
         CodecheckGithubRegisterApiClient $codecheckGithubRegisterApiClient,
         CertificateIdentifier $identifier,
-        CodecheckVenue $venue,
+        CodecheckIssueLabels $issueLabels,
         string $articleTitle,
         string $authorString,
         array $codecheckers,
@@ -479,7 +459,7 @@ class CodecheckApiHandler
         try {
             $issue = $codecheckGithubRegisterApiClient->addIssue(
                 $identifier,
-                $venue,
+                $issueLabels,
                 $articleTitle,
                 $authorString,
                 $codecheckers,
@@ -504,7 +484,7 @@ class CodecheckApiHandler
      */
     private function reserveIdentifierWithNewIssueUrl(
         CertificateIdentifier $identifier,
-        CodecheckVenue $venue,
+        CodecheckIssueLabels $issueLabels,
         string $articleTitle,
         string $authorString,
         array $codecheckers,
@@ -517,7 +497,7 @@ class CodecheckApiHandler
             'codecheckers',
             'testing-dev-register',
             $identifier,
-            $venue,
+            $issueLabels,
             $articleTitle,
             $journalName,
             $authorString,
