@@ -308,7 +308,7 @@ class CodecheckApiHandler
         } else {
             $this->response->response([
                 'success'   => false,
-                'error'     => "The CODECHECK Venue Type and/ or Venue Names aren't of Type string as expected.",
+                'error'     => "Some Parameters sent with POST to the API aren't of the expected datatype.",
             ], 400);
             return;
         }
@@ -331,7 +331,7 @@ class CodecheckApiHandler
             $this->request->getContext(), // The Journal Object of the Submission
         );
 
-        $issueLabelArray = $postParams["labels"];
+        $issueLabelArray = $postParams["issue"]["labelsSelected"];
         $submissionData = $postParams["submission"];
         $authorString = $submissionData["authorString"];
         $articleTitle = $submissionData["title"];
@@ -365,7 +365,7 @@ class CodecheckApiHandler
         } else {
             $this->response->response([
                 'success'   => false,
-                'error'     => "The CODECHECK Venue Type and/ or Venue Names aren't of Type string as expected.",
+                'error'     => "Some Parameters sent with POST to the API aren't of the expected datatype.",
             ], 400);
             return;
         }
@@ -523,8 +523,7 @@ class CodecheckApiHandler
                 'codecheckers' => json_decode($metadata->codecheckers ?? '[]', true),
                 'source' => $metadata->source,
                 'certificate' => $metadata->certificate,
-                'issueUrl' => $metadata->issueUrl,
-                'issueNumber' => $metadata->issueNumber,
+                'issue' => json_decode($metadata->issue ?? '[]', true),
                 'check_time' => $metadata->check_time,
                 'summary' => $metadata->summary,
                 'report' => $metadata->report,
@@ -577,8 +576,7 @@ class CodecheckApiHandler
             'source' => $nullIfEmpty($data['source'] ?? null),
             'codecheckers' => json_encode($data['codecheckers'] ?? []),
             'certificate' => $nullIfEmpty($data['certificate'] ?? null),
-            'issueUrl' => $nullIfEmpty($data['issueUrl'] ?? null),
-            'issueNumber' => $nullIfEmpty($data['issueNumber'] ?? null),
+            'issue' => json_encode($data['issue'] ?? ['url' => null, 'number' => null, 'labels' => [], 'labelsSelected' => []]),
             'check_time' => $nullIfEmpty($data['check_time'] ?? null),
             'summary' => $nullIfEmpty($data['summary'] ?? null),    
             'report' => $nullIfEmpty($data['report'] ?? null),
