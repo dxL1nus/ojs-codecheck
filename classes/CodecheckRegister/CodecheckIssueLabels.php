@@ -1,53 +1,64 @@
 <?php
 namespace APP\plugins\generic\codecheck\classes\CodecheckRegister;
 
+use APP\plugins\generic\codecheck\classes\DataStructures\UniqueArray;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
-use APP\plugins\generic\codecheck\classes\DataStructures\UniqueArray;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckApiClient;
 
-class CodecheckVenueTypes
+class CodecheckIssueLabels
 {
     private UniqueArray $uniqueArray;
 
     /**
-     * Initializes a new List of all CODECHECK Venue Types
+     * Initializes a new List of all CODECHECK Issue Labels
      */
-    function __construct()
+    function __construct(array $issueLabelArray)
     {
-        // Initialize unique Array
-        $this->uniqueArray = new UniqueArray();
+        // Initialize and fill unique Array
+        $this->uniqueArray = UniqueArray::from($issueLabelArray);
+    }
+
+    public static function fromApi(string $url): CodecheckIssueLabels
+    {
+        $issueLabelArray = [];
+
         // Intialize API caller
         $codecheckApiClient = new CodecheckApiClient();
         // fetch CODECHECK Type data
         try {
-            $codecheckApiClient->fetch("https://codecheck.org.uk/register/venues/index.json");
+            $codecheckApiClient->fetch($url);
         } catch (CurlInitException $curlInitException) {
             // TODO: Implement that the user gets notified, that the fetching of the Labels didn't work
             error_log($curlInitException);
             throw $curlInitException;
-            return;
         } catch (CurlReadException $curlReadException) {
             // TODO: Implement that the user gets notified, that the fetching of the Labels didn't work
             error_log($curlReadException);
             throw $curlReadException;
-            return;
         }
         // get json Data from API Caller
         $data = $codecheckApiClient->getData();
 
         foreach($data as $venue) {
-            // insert every type (as this is a unique Array each Type will only occur once)
-            $type = $venue["Venue type"];
-            // Add every venue type to the unique Array
-            $this->uniqueArray->add($type);
+            $label = $venue["Issue label"];
+            // If a Label is "id assigned" or "development" it automatically gets assigned
+            // Therefore this Label has to be skipped here, as it shouldn't be selected manually by the user
+            if($label == "id assigned" || $label == "development") {
+                continue;
+            }
+            // add Label to Venue Names
+            $issueLabelArray[] = $label;
         }
+
+        $codecheckIssueLabels = new CodecheckIssueLabels($issueLabelArray);
+        return $codecheckIssueLabels;
     }
 
     /**
-     * Gets the List of all CODECHECK Venue Types
+     * Gets the List of all CODECHECK Venue Names
      * 
-     * @return UniqueArray Returns all CODECHECK Venue Types inside a `UniqueArray`
+     * @return UniqueArray Returns all CODECHECK Venue Names inside a `UniqueArray`
      */
     public function get(): UniqueArray
     {
