@@ -646,6 +646,8 @@ export default {
         // show some error message
       }
 
+      console.log(this.certificateIdentifier.issue.labelsSelected);
+
       try {
         const dataToSave = {
           version: this.metadata.version,

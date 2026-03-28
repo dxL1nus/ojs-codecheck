@@ -18,6 +18,7 @@ use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
 use APP\facades\Repo;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckIssueLabels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class CodecheckApiHandler
 {
@@ -175,15 +176,29 @@ class CodecheckApiHandler
      * @return void
      */
     private function getCodecheckIssueLabels(): void
-    {   
-        try {
-            $codecheckIssueLabels = CodecheckIssueLabels::fromApi("https://codecheck.org.uk/register/venues/index.json");
-        } catch (\Throwable $e) {
-            $this->response->response([
-                'success'   => false,
-                'error'     => $e->getMessage(),
-            ], 400);
-            return;
+    {
+        $dbLabelsOutdated = false;
+
+        $issueLabelsLastUpdated = strtotime($this->getIssueLabelsLastUpdated());
+        $now = strtotime(date('Y-m-d H:i:s'));
+        $timeDifferenceInHours = round(($now - $issueLabelsLastUpdated) / 3600);
+
+        if($timeDifferenceInHours > 6) {
+            $dbLabelsOutdated = true;
+        }
+
+        $codecheckIssueLabels = CodecheckIssueLabels::fromDB();
+
+        if($dbLabelsOutdated) {
+            try {
+                $codecheckIssueLabels = CodecheckIssueLabels::fromApi("https://codecheck.org.uk/register/venues/index.json");
+            } catch (\Throwable $e) {
+                $this->response->response([
+                    'success'   => false,
+                    'error'     => $e->getMessage(),
+                ], 400);
+                return;
+            }
         }
 
         // Serve the getCodecheckIssueLabels API route
@@ -191,6 +206,31 @@ class CodecheckApiHandler
             'success' => true,
             'labels' => $codecheckIssueLabels->get()->toArray(),
         ], 200);
+    }
+
+    /**
+     * This function gets when the Codecheck Issue Labels where last updated
+     * 
+     * @return string The Date when the issues where last updated
+     */
+    private function getIssueLabelsLastUpdated(): string
+    {
+        if (!Schema::hasTable('codecheck_issue_labels')) {
+            error_log("[CODECHECK API] The Issue Label table doesn't exist");
+        }
+
+        $labelsLastUpdated = DB::table('codecheck_issue_labels')
+            ->select(['labels_last_updated'])
+            ->first();
+
+        error_log("Labels: " . print_r(DB::table('codecheck_issue_labels')->select(['*'])->get()->toArray(), true));
+
+        // If Labels weren't updated yet, set last updated to earliest date possible, so they will definitely get updated
+        $labelsLastUpdated = $labelsLastUpdated->labels_last_updated ?? date('Y-m-d H:i:s', 0);
+
+        error_log("[CODECHECK API] Codecheck Issues Last Updated: " . json_encode($labelsLastUpdated));
+        
+        return $labelsLastUpdated;
     }
 
     /**
@@ -531,7 +571,7 @@ class CodecheckApiHandler
             ] : null
         ];
 
-        error_log("[CODECHECK API] Response: " . json_encode($response));
+        error_log("[CODECHECK API] getMetadata Response: " . json_encode($response));
         
         $this->response->response($response, 200);
     }
@@ -576,7 +616,7 @@ class CodecheckApiHandler
             'source' => $nullIfEmpty($data['source'] ?? null),
             'codecheckers' => json_encode($data['codecheckers'] ?? []),
             'certificate' => $nullIfEmpty($data['certificate'] ?? null),
-            'issue' => json_encode($data['issue'] ?? ['url' => null, 'number' => null, 'labels' => [], 'labelsSelected' => []]),
+            'issue' => json_encode($data['issue'] ?? ['url' => null, 'number' => null, 'labelsSelected' => []]),
             'check_time' => $nullIfEmpty($data['check_time'] ?? null),
             'summary' => $nullIfEmpty($data['summary'] ?? null),    
             'report' => $nullIfEmpty($data['report'] ?? null),
