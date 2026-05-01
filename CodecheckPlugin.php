@@ -67,9 +67,16 @@ class CodecheckPlugin extends GenericPlugin
                 return $codecheckWizard->addToSubmissionWizardReviewTemplate($hookName, $params);
             });
             
+            // Test if we can hook into the publication to block it if codecheck failed
+            Hook::add('Publication::publish', $this->interceptPublication(...));
         }
 
         return $success;
+    }
+
+    public function interceptPublication(string $hookName, array $args): void
+    {
+        error_log("[CODECHECK Plugin] Successfully intercepted publication!");
     }
     
     /**
