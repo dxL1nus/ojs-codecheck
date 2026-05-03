@@ -307,6 +307,10 @@ msgstr "Status"
 
 msgid "plugins.generic.codecheck.status.complete"
 msgstr "Complete"
+
+msgid "plugins.generic.codecheck.status.validation.failed"
+msgstr "The mandatory CODECHECK for this submission failed. Please get in touch with the codechecker(s) to resolve all errors, before this submission can be published!"
+
 msgid "plugins.generic.codecheck.dataAvailability.placeholder"
 msgstr "Describe how your data and code are available..."
 

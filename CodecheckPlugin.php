@@ -68,15 +68,29 @@ class CodecheckPlugin extends GenericPlugin
             });
             
             // Test if we can hook into the publication to block it if codecheck failed
-            Hook::add('Publication::publish', $this->interceptPublication(...));
+            Hook::add('Publication::validatePublish', $this->validateCodecheckStatus(...));
         }
 
         return $success;
     }
 
-    public function interceptPublication(string $hookName, array $args): void
+    public function validateCodecheckStatus(string $hookName, array $args): bool
     {
-        error_log("[CODECHECK Plugin] Successfully intercepted publication!");
+        $errors = &$args[0];
+        $publication = $args[1]; // sometimes passed by reference depending on version
+
+        error_log(print_r($publication, true));
+        error_log(print_r($errors, true));
+
+        error_log("[CODECHECK Plugin] Validating CODECHECK before publication!");
+
+        $codecheckStatus = false;
+
+        if (!$codecheckStatus) {
+            $errors[] = __('plugins.generic.codecheck.status.validation.failed');
+        }
+
+        return $codecheckStatus;
     }
     
     /**
