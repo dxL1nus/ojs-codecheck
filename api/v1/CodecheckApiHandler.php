@@ -232,7 +232,7 @@ class CodecheckApiHandler
             try {
                 $codecheckIssueLabels = CodecheckIssueLabels::fromApi("https://codecheck.org.uk/register/venues/index.json");
             } catch (\Throwable $e) {
-                $this->response->response([
+                JsonResponse::staticResponse([
                     'success'   => false,
                     'error'     => $e->getMessage(),
                 ], 400);
@@ -241,7 +241,7 @@ class CodecheckApiHandler
         }
 
         // Serve the getCodecheckIssueLabels API route
-        $this->response->response([
+        JsonResponse::staticResponse([
             'success' => true,
             'labels' => $codecheckIssueLabels->get()->toArray(),
         ], 200);
@@ -299,7 +299,7 @@ class CodecheckApiHandler
         $reserveIdentifierMode = $postParams['reserveIdentifierMode'];
 
         if(!is_string($reserveIdentifierMode)) {
-            $this->response->response([
+            JsonResponse::staticResponse([
                 'success'   => false,
                 'error'     => "No Reserve Identifier Mode was specified.",
             ], 400);
@@ -332,13 +332,13 @@ class CodecheckApiHandler
         try {
             $certificateIdentifierList = CertificateIdentifierList::fromApi($codecheckGithubRegisterApiClient);
         } catch (ApiFetchException $ae) {
-            $this->response->response([
+            JsonResponse::staticResponse([
                 'success'   => false,
                 'error'     => $ae->getMessage(),
             ], 400);
             return;
         } catch (NoMatchingIssuesFoundException $me) {
-            $this->response->response([
+            JsonResponse::staticResponse([
                 'success'   => false,
                 'error'     => $me->getMessage(),
             ], 400);
@@ -389,7 +389,7 @@ class CodecheckApiHandler
                     break;
 
                 default:
-                    $this->response->response([
+                    JsonResponse::staticResponse([
                         'success'   => false,
                         'error'     => "An unexpected mode for the reservation of the Certificate Identifier was given: " . $reserveIdentifierMode,
                     ], 400);
@@ -400,7 +400,7 @@ class CodecheckApiHandler
             if($issueGithubUrl == null) { return; }
 
             // return a success result
-            $this->response->response([
+            JsonResponse::staticResponse([
                 'success' => true,
                 'identifier' => $newIdentifier->toStr(),
                 'issueUrl' => $issueGithubUrl,
@@ -408,7 +408,7 @@ class CodecheckApiHandler
             ], 200);
             return;
         } else {
-            $this->response->response([
+            JsonResponse::staticResponse([
                 'success'   => false,
                 'error'     => "Some Parameters sent with POST to the API aren't of the expected datatype.",
             ], 400);
@@ -464,7 +464,7 @@ class CodecheckApiHandler
             # TODO: Check if the update function worked and return JSON Error if not
 
             // return a success result
-            $this->response->response([
+            JsonResponse::staticResponse([
                 'success' => true,
                 'identifier' => $identifier->toStr(),
                 'issueUrl' => $updatedIssue['html_url'],
@@ -472,7 +472,7 @@ class CodecheckApiHandler
             ], 200);
             return;
         } else {
-            $this->response->response([
+            JsonResponse::staticResponse([
                 'success'   => false,
                 'error'     => "Some Parameters sent with POST to the API aren't of the expected datatype.",
             ], 400);
@@ -507,7 +507,7 @@ class CodecheckApiHandler
             );
         } catch (ApiCreateException $e) {
             // return an error result
-            $this->response->response([
+            JsonResponse::staticResponse([
                 'success'   => false,
                 'error'     => $e->getMessage(),
             ], 400);
@@ -556,7 +556,7 @@ class CodecheckApiHandler
         $title =  "a | " . $identifierStr;
         $rawIdentifier = CertificateIdentifierList::getRawIdentifier($title);
         if($rawIdentifier == null) {
-            $this->response->response([
+            JsonResponse::staticResponse([
                 'success'   => false,
                 'identifier' => $identifierStr,
                 'error'     => "The identifier: " . $identifierStr . " isn't matching the required format (YYYY-NNN or YYYY-NNN/YYYY-NNN).",
@@ -567,7 +567,7 @@ class CodecheckApiHandler
         $issue = $certificateIdentifierList->getIssueInformationByIdentifier($identifier);
         error_log(print_r($issue, true));
         if(is_string($issue['issueUrl']) && is_int($issue['issueNumber'])) {
-            $this->response->response([
+            JsonResponse::staticResponse([
                 'success' => true,
                 'identifier' => $identifier->toStr(),
                 'issueUrl' => $issue['issueUrl'],
@@ -576,7 +576,7 @@ class CodecheckApiHandler
             return;
         }
 
-        $this->response->response([
+        JsonResponse::staticResponse([
             'success'   => false,
             'identifier' => $identifierStr,
             'error'     => "The certificate with the Identifier: ". $identifierStr . " doesn't exist in the GitHub Register.",
