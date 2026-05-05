@@ -89,6 +89,15 @@ msgstr "+ Label"
 msgid "plugins.generic.codecheck.settings.github.labels.emptyState"
 msgstr "No custom journal labels added yet"
 
+msgid "plugins.generic.codecheck.settings.status"
+msgstr "Block Publication, if CODECHECK hasn't reached the desired status"
+
+msgid "plugins.generic.codecheck.settings.status.description"
+msgstr "Please select the minimum required status a CODECHECK should have, before a submission is allowed to be published"
+
+msgid "plugins.generic.codecheck.settings.status.noBlock"
+msgstr "Ignore the CODECHECK status and never block Publication"
+
 msgid "plugins.generic.codecheck.title"
 msgstr "CODECHECK"
 
@@ -311,14 +320,41 @@ msgstr "Complete"
 msgid "plugins.generic.codecheck.status.validation.failed"
 msgstr "The mandatory CODECHECK for this submission failed. Please get in touch with the codechecker(s) to resolve all errors, before this submission can be published!"
 
+msgid "plugins.generic.codecheck.status.pending"
+msgstr "Pending"
+
+msgid "plugins.generic.codecheck.status.needsCodechecker"
+msgstr "needs codechecker"
+
+msgid "plugins.generic.codecheck.status.assignedCodechecker"
+msgstr "codechecker assigned"
+
+msgid "plugins.generic.codecheck.status.stalled.author"
+msgstr "stalled (author)"
+
+msgid "plugins.generic.codecheck.status.stalled.codechecker"
+msgstr "stalled (codechecker)"
+
+msgid "plugins.generic.codecheck.status.completed.unsuccessful"
+msgstr "completed: unsuccessful"
+
+msgid "plugins.generic.codecheck.status.completed.partialReproduction"
+msgstr "completed: partial reproduction"
+
+msgid "plugins.generic.codecheck.status.completed.fullReproduction"
+msgstr "completed: full reproduction"
+
+msgid "plugins.generic.codecheck.status.publishedCertificate.partialReproduction"
+msgstr "published certificate: partial reproduction"
+
+msgid "plugins.generic.codecheck.status.publishedCertificate.fullReproduction"
+msgstr "published certificate: full reproduction"
+
 msgid "plugins.generic.codecheck.dataAvailability.placeholder"
 msgstr "Describe how your data and code are available..."
 
 msgid "plugins.generic.codecheck.review.title"
 msgstr "CODECHECK Information"
-
-msgid "plugins.generic.codecheck.status.pending"
-msgstr "Pending"
 
 msgid "plugins.generic.codecheck.notYetAssigned"
 msgstr "Not yet assigned"

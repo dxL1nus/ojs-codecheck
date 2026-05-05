@@ -84,13 +84,14 @@ class CodecheckPlugin extends GenericPlugin
 
         error_log("[CODECHECK Plugin] Validating CODECHECK before publication!");
 
-        $codecheckStatus = false;
+        $codecheckStatus = $this->getSetting($context->getId(), Constants::CODECHECK_STATUS);
 
-        if (!$codecheckStatus) {
+        if ($codecheckStatus != 'no-block') {
             $errors[] = __('plugins.generic.codecheck.status.validation.failed');
+            return false;
         }
 
-        return $codecheckStatus;
+        return true;
     }
     
     /**

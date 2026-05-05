@@ -232,6 +232,24 @@
 			</div>
 		{/fbvFormSection}
 
+		{* Block Publication, when CODECHECK has specific status *}
+		{fbvFormSection
+			list=true
+		}
+			<div class="field-header">
+				<label class="pkp_form_label">{translate key="plugins.generic.codecheck.settings.status"}</label>
+			</div>
+			<label class="description">{translate key="plugins.generic.codecheck.settings.status.description"}</label>
+			{fbvElement
+				type="select"
+				id="codecheckStatus"
+				class="codecheck-form-select"
+				from=$codecheckStatuses
+				selected=$codecheckStatus
+				translate=false
+			}
+		{/fbvFormSection}
+
 		{* TODO: Add more settings in future development *}
 		{* - ORCID integration settings *}
 		{* - Email template settings *}
