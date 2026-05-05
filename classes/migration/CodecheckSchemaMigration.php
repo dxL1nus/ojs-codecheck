@@ -31,6 +31,22 @@ class CodecheckSchemaMigration extends Migration
         $this->createCodecheckGenres();
     }
 
+    public function codecheckStatusUp(): void
+    {
+        if (!Schema::hasTable('codecheck_status')) {
+            Schema::create('codecheck_status', function (Blueprint $table) {
+                $table->bigInteger('status_id')->autoIncrement()->primary();
+                $table->bigInteger('submission_id');
+                $table->foreign('submission_id', 'codecheck_status_metadata')->references('submission_id')->on('codecheck_metadata')->onDelete('cascade');
+                $table->string('status', 100);
+                $table->timestamp('timestamp')->nullable();
+                $table->string('user', 100);
+                $table->timestamps();
+                $table->index('status_id');
+            });
+        }
+    }
+
     private function createCodecheckGenres(): void
     {
         $contextDao = \APP\core\Application::getContextDAO();
