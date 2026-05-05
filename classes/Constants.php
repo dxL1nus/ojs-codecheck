@@ -40,4 +40,6 @@ class Constants
     public const CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_FIELDS = 'codecheckGithubUpdateFields';
     public const CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE = 'updateTitle';
     public const CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY = 'updateBody';
+    # Codecheck Status
+    public const CODECHECK_STATUS = 'codecheckStatus';
 }

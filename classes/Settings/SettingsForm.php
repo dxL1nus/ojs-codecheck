@@ -125,6 +125,14 @@ class SettingsForm extends Form
             ) ?? []
         );
 
+        $this->setData(
+            Constants::CODECHECK_STATUS,
+            $this->plugin->getSetting(
+                $context->getId(),
+                Constants::CODECHECK_STATUS
+            )
+        );
+
         // Default to true — show the dashboard column unless explicitly disabled
         $showDashboardColumn = $this->plugin->getSetting(
             $context->getId(),
@@ -166,6 +174,7 @@ class SettingsForm extends Form
             Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE,
             Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY,
             Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_FIELDS,
+            Constants::CODECHECK_STATUS,
         ]);
 
         parent::readInputData();
@@ -195,6 +204,18 @@ class SettingsForm extends Form
             'showDashboardColumn',
             $this->getData(Constants::CODECHECK_SHOW_DASHBOARD_COLUMN)
         );
+        $templateMgr->assign('codecheckStatuses', [
+            'no-block' => __('plugins.generic.codecheck.settings.status.noBlock'),
+            'needs-codechecker' => __('plugins.generic.codecheck.status.needsCodechecker'),
+            'assigned-codechecker' => __('plugins.generic.codecheck.status.assignedCodechecker'),
+            'stalled-author' => __('plugins.generic.codecheck.status.stalled.author'),
+            'stalled-codechecker' => __('plugins.generic.codecheck.status.stalled.codechecker'),
+            'completed-unsuccessful' => __('plugins.generic.codecheck.status.completed.unsuccessful'),
+            'completed-partial-reproduction' => __('plugins.generic.codecheck.status.completed.partialReproduction'),
+            'completed-full-reproduction' => __('plugins.generic.codecheck.status.completed.fullReproduction'),
+            'published-certificate-partialReproduction' => __('plugins.generic.codecheck.status.publishedCertificate.partialReproduction'),
+            'published-certificate-fullReproduction' => __('plugins.generic.codecheck.status.publishedCertificate.fullReproduction'),
+        ]);
 
         return parent::fetch($request, $template, $display);
     }
@@ -264,6 +285,12 @@ class SettingsForm extends Form
                 (array) $this->getData(Constants::CODECHECK_GITHUB_CUSTOM_LABELS),
                 fn ($label) => !empty($label)
             ))
+        );
+        
+        $this->plugin->updateSetting(
+            $context->getId(),
+            Constants::CODECHECK_STATUS,
+            $this->getData(Constants::CODECHECK_STATUS)
         );
 
         $this->plugin->updateSetting(
