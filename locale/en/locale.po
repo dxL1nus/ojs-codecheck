@@ -111,10 +111,13 @@ msgid "plugins.generic.codecheck.settings.updateIssue.body"
 msgstr "Update the Issue Description (containing the article, codechecker and repository information)"
 
 msgid "plugins.generic.codecheck.settings.status"
-msgstr "Block Publication, if CODECHECK hasn't reached the desired status"
+msgstr "What status must a check have for a paper to proceed with the publication?"
 
 msgid "plugins.generic.codecheck.settings.status.description"
-msgstr "Please select the minimum required status a CODECHECK should have, before a submission is allowed to be published"
+msgstr "Please select the minimum statuses required for a CODECHECK, before a submission is allowed to be published"
+
+msgid "plugins.generic.codecheck.settings.status.selectStatuses"
+msgstr "Select Status(es)"
 
 msgid "plugins.generic.codecheck.settings.status.noBlock"
 msgstr "Ignore the CODECHECK status and never block Publication"
@@ -369,7 +372,7 @@ msgid "plugins.generic.codecheck.status.complete"
 msgstr "Complete"
 
 msgid "plugins.generic.codecheck.status.validation.failed"
-msgstr "The mandatory CODECHECK for this submission failed. Please get in touch with the codechecker(s) to resolve all errors, before this submission can be published!"
+msgstr "The mandatory CODECHECK for this submission has a status ({$codecheckStatus}), which is not allowed for publication by the journal. Please get in touch with the codechecker(s) to resolve all errors, before this submission can be published!"
 
 msgid "plugins.generic.codecheck.status.pending"
 msgstr "Pending"

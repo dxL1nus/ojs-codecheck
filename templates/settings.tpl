@@ -70,6 +70,20 @@
 			);
 		});
 	});
+
+	$('.settings-droptown.dropdown').on('mouseenter', function() {
+		const $dropdown = $(this);
+		const $content = $dropdown.find('.dropdown-content');
+		const rect = this.getBoundingClientRect();
+		const contentHeight = $content.outerHeight() || 200;
+		const spaceBelow = window.innerHeight - rect.bottom;
+
+		if (spaceBelow < contentHeight) {
+			$dropdown.addClass('dropdown-up');
+		} else {
+			$dropdown.removeClass('dropdown-up');
+		}
+	});
 </script>
 {/literal}
 
@@ -274,14 +288,27 @@
 				<label class="pkp_form_label">{translate key="plugins.generic.codecheck.settings.status"}</label>
 			</div>
 			<label class="description">{translate key="plugins.generic.codecheck.settings.status.description"}</label>
-			{fbvElement
-				type="select"
-				id="codecheckStatus"
-				class="codecheck-form-select"
-				from=$codecheckStatuses
-				selected=$codecheckStatus
-				translate=false
-			}
+			<fieldset>
+				<div class="settings-droptown dropdown">
+					<button type="button" class="dropbtn">{translate key="plugins.generic.codecheck.settings.status.selectStatuses"} ⚙</button>
+					<div class="dropdown-content">
+						{foreach from=$codecheckStatuses item=statusKey}
+							<div class="dropdown-checkbox-input">
+								<input
+									type="checkbox"
+									name="codecheckStatusKeysSelected[]"
+									id="status-{$statusKey}"
+									value="{$statusKey|escape}"
+									{if $codecheckStatusKeysSelected && in_array($statusKey, $codecheckStatusKeysSelected)}checked{/if}
+								/>
+								<label for="status-{$statusKey}">
+									{translate key=$statusKey}
+								</label>
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			</fieldset>
 		{/fbvFormSection}
 
 		{* TODO: Add more settings in future development *}

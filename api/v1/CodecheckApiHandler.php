@@ -261,6 +261,9 @@ class CodecheckApiHandler
         $githubCustomLabels = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_CUSTOM_LABELS);
         $codecheckIssueLabels->addLabelArray($githubCustomLabels);
 
+        $codecheckStatuses = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_STATUS_KEYS_SELECTED);
+        error_log(print_r($codecheckStatuses, true));
+
         // Serve the getCodecheckIssueLabels API route
         JsonResponse::staticResponse([
             'success' => true,
