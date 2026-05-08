@@ -127,11 +127,11 @@ class SettingsForm extends Form
         );
 
         $this->setData(
-            Constants::CODECHECK_STATUS,
+            Constants::CODECHECK_STATUSES_SELECTED,
             $this->plugin->getSetting(
                 $context->getId(),
-                Constants::CODECHECK_STATUS
-            )
+                Constants::CODECHECK_STATUSES_SELECTED
+            ) ?? []
         );
 
         parent::initData();
@@ -152,7 +152,7 @@ class SettingsForm extends Form
             Constants::CODECHECK_GITHUB_REGISTER_ORGANIZATION,
             Constants::CODECHECK_GITHUB_REGISTER_REPOSITORY,
             Constants::CODECHECK_GITHUB_CUSTOM_LABELS,
-            Constants::CODECHECK_STATUS,
+            Constants::CODECHECK_STATUSES_SELECTED,
         ]);
 
         parent::readInputData();
@@ -170,7 +170,7 @@ class SettingsForm extends Form
         $templateMgr = TemplateManager::getManager($request);
         $templateMgr->assign('pluginName', $this->plugin->getName());
         $templateMgr->assign(
-            'githubCustomLabels',
+            Constants::CODECHECK_GITHUB_CUSTOM_LABELS,
             $this->getData(Constants::CODECHECK_GITHUB_CUSTOM_LABELS) ?? []
         );
         $templateMgr->assign('codecheckModes', [
@@ -179,7 +179,6 @@ class SettingsForm extends Form
             'mandatory' => __('plugins.generic.codecheck.settings.mode.mandatory'),
         ]);
         $templateMgr->assign('codecheckStatuses', [
-            'no-block' => __('plugins.generic.codecheck.settings.status.noBlock'),
             'needs-codechecker' => __('plugins.generic.codecheck.status.needsCodechecker'),
             'assigned-codechecker' => __('plugins.generic.codecheck.status.assignedCodechecker'),
             'stalled-author' => __('plugins.generic.codecheck.status.stalled.author'),
@@ -190,6 +189,11 @@ class SettingsForm extends Form
             'published-certificate-partialReproduction' => __('plugins.generic.codecheck.status.publishedCertificate.partialReproduction'),
             'published-certificate-fullReproduction' => __('plugins.generic.codecheck.status.publishedCertificate.fullReproduction'),
         ]);
+
+        $templateMgr->assign(
+            Constants::CODECHECK_STATUSES_SELECTED,
+            (array) $this->getData(Constants::CODECHECK_STATUSES_SELECTED) ?? []
+        );
 
         return parent::fetch($request, $template, $display);
     }
@@ -261,11 +265,11 @@ class SettingsForm extends Form
                 fn ($label) => !empty($label)
             ))
         );
-        
+
         $this->plugin->updateSetting(
-            $context->getId(),
-            Constants::CODECHECK_STATUS,
-            $this->getData(Constants::CODECHECK_STATUS)
+            $contextId,
+            Constants::CODECHECK_STATUSES_SELECTED,
+            (array) $this->getData(Constants::CODECHECK_STATUSES_SELECTED)
         );
 
         $notificationMgr = new NotificationManager();

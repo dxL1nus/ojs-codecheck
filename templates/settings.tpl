@@ -240,14 +240,27 @@
 				<label class="pkp_form_label">{translate key="plugins.generic.codecheck.settings.status"}</label>
 			</div>
 			<label class="description">{translate key="plugins.generic.codecheck.settings.status.description"}</label>
-			{fbvElement
-				type="select"
-				id="codecheckStatus"
-				class="codecheck-form-select"
-				from=$codecheckStatuses
-				selected=$codecheckStatus
-				translate=false
-			}
+			<fieldset>
+				<div class="settings-droptown dropdown">
+					<button type="button" class="dropbtn">{translate key="plugins.generic.codecheck.settings.status.selectStatuses"} ⚙</button>
+					<div class="dropdown-content">
+						{foreach from=$codecheckStatuses key=statusKey item=statusLabel}
+							<div class="dropdown-checkbox-input">
+								<input
+									type="checkbox"
+									name="codecheckStatusesSelected[]"
+									id="status-{$statusKey}"
+									value="{$statusKey|escape}"
+									{if $codecheckStatusesSelected && in_array($statusKey, $codecheckStatusesSelected)}checked{/if}
+								/>
+								<label for="status-{$statusKey}">
+									{$statusLabel}
+								</label>
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			</fieldset>
 		{/fbvFormSection}
 
 		{* TODO: Add more settings in future development *}
