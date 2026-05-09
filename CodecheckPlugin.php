@@ -78,16 +78,18 @@ class CodecheckPlugin extends GenericPlugin
     {
         $errors = &$args[0];
         $publication = $args[1]; // sometimes passed by reference depending on version
-
-        error_log(print_r($publication, true));
-        error_log(print_r($errors, true));
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
 
         error_log("[CODECHECK Plugin] Validating CODECHECK before publication!");
 
-        $codecheckStatus = $this->getSetting($context->getId(), Constants::CODECHECK_STATUS);
+        $codecheckStatus = 'plugins.generic.codecheck.status.completed.partialReproduction';
+        $codecheckStatusKeysSelected = $this->getSetting($context->getId(), Constants::CODECHECK_STATUS_KEYS_SELECTED);
 
-        if ($codecheckStatus != 'no-block') {
-            $errors[] = __('plugins.generic.codecheck.status.validation.failed');
+        if (!in_array($codecheckStatus, $codecheckStatusKeysSelected)) {
+            $errors[] = __('plugins.generic.codecheck.status.validation.failed', [
+                'codecheckStatus' => __($codecheckStatus)
+            ]);
             return false;
         }
 

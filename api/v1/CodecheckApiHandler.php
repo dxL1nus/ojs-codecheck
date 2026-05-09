@@ -212,6 +212,9 @@ class CodecheckApiHandler
         $context = $this->request->getContext();
         $githubCustomLabels = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_CUSTOM_LABELS);
 
+        $codecheckStatuses = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_STATUS_KEYS_SELECTED);
+        error_log(print_r($codecheckStatuses, true));
+
         // Serve the getVenueData API route
         JsonResponse::staticResponse([
             'success' => true,

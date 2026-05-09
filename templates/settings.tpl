@@ -70,6 +70,20 @@
 			);
 		});
 	});
+
+	$('.settings-droptown.dropdown').on('mouseenter', function() {
+		const $dropdown = $(this);
+		const $content = $dropdown.find('.dropdown-content');
+		const rect = this.getBoundingClientRect();
+		const contentHeight = $content.outerHeight() || 200;
+		const spaceBelow = window.innerHeight - rect.bottom;
+
+		if (spaceBelow < contentHeight) {
+			$dropdown.addClass('dropdown-up');
+		} else {
+			$dropdown.removeClass('dropdown-up');
+		}
+	});
 </script>
 {/literal}
 
@@ -244,17 +258,17 @@
 				<div class="settings-droptown dropdown">
 					<button type="button" class="dropbtn">{translate key="plugins.generic.codecheck.settings.status.selectStatuses"} ⚙</button>
 					<div class="dropdown-content">
-						{foreach from=$codecheckStatuses key=statusKey item=statusLabel}
+						{foreach from=$codecheckStatuses item=statusKey}
 							<div class="dropdown-checkbox-input">
 								<input
 									type="checkbox"
-									name="codecheckStatusesSelected[]"
+									name="codecheckStatusKeysSelected[]"
 									id="status-{$statusKey}"
 									value="{$statusKey|escape}"
-									{if $codecheckStatusesSelected && in_array($statusKey, $codecheckStatusesSelected)}checked{/if}
+									{if $codecheckStatusKeysSelected && in_array($statusKey, $codecheckStatusKeysSelected)}checked{/if}
 								/>
 								<label for="status-{$statusKey}">
-									{$statusLabel}
+									{translate key=$statusKey}
 								</label>
 							</div>
 						{/foreach}

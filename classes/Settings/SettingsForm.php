@@ -127,10 +127,10 @@ class SettingsForm extends Form
         );
 
         $this->setData(
-            Constants::CODECHECK_STATUSES_SELECTED,
+            Constants::CODECHECK_STATUS_KEYS_SELECTED,
             $this->plugin->getSetting(
                 $context->getId(),
-                Constants::CODECHECK_STATUSES_SELECTED
+                Constants::CODECHECK_STATUS_KEYS_SELECTED
             ) ?? []
         );
 
@@ -152,7 +152,7 @@ class SettingsForm extends Form
             Constants::CODECHECK_GITHUB_REGISTER_ORGANIZATION,
             Constants::CODECHECK_GITHUB_REGISTER_REPOSITORY,
             Constants::CODECHECK_GITHUB_CUSTOM_LABELS,
-            Constants::CODECHECK_STATUSES_SELECTED,
+            Constants::CODECHECK_STATUS_KEYS_SELECTED,
         ]);
 
         parent::readInputData();
@@ -178,22 +178,7 @@ class SettingsForm extends Form
             'opt-out' => __('plugins.generic.codecheck.settings.mode.opt.out'),
             'mandatory' => __('plugins.generic.codecheck.settings.mode.mandatory'),
         ]);
-        $templateMgr->assign('codecheckStatuses', [
-            'needs-codechecker' => __('plugins.generic.codecheck.status.needsCodechecker'),
-            'assigned-codechecker' => __('plugins.generic.codecheck.status.assignedCodechecker'),
-            'stalled-author' => __('plugins.generic.codecheck.status.stalled.author'),
-            'stalled-codechecker' => __('plugins.generic.codecheck.status.stalled.codechecker'),
-            'completed-unsuccessful' => __('plugins.generic.codecheck.status.completed.unsuccessful'),
-            'completed-partial-reproduction' => __('plugins.generic.codecheck.status.completed.partialReproduction'),
-            'completed-full-reproduction' => __('plugins.generic.codecheck.status.completed.fullReproduction'),
-            'published-certificate-partialReproduction' => __('plugins.generic.codecheck.status.publishedCertificate.partialReproduction'),
-            'published-certificate-fullReproduction' => __('plugins.generic.codecheck.status.publishedCertificate.fullReproduction'),
-        ]);
-
-        $templateMgr->assign(
-            Constants::CODECHECK_STATUSES_SELECTED,
-            (array) $this->getData(Constants::CODECHECK_STATUSES_SELECTED) ?? []
-        );
+        $templateMgr->assign('codecheckStatuses', Constants::CODECHECK_STATUSES);
 
         return parent::fetch($request, $template, $display);
     }
@@ -267,9 +252,9 @@ class SettingsForm extends Form
         );
 
         $this->plugin->updateSetting(
-            $contextId,
-            Constants::CODECHECK_STATUSES_SELECTED,
-            (array) $this->getData(Constants::CODECHECK_STATUSES_SELECTED)
+            $context->getId(),
+            Constants::CODECHECK_STATUS_KEYS_SELECTED,
+            (array) $this->getData(Constants::CODECHECK_STATUS_KEYS_SELECTED)
         );
 
         $notificationMgr = new NotificationManager();

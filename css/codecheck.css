@@ -325,9 +325,10 @@ textarea[name="dataAvailabilityStatement"] {
 }
 
 .settings-droptown.dropdown {
-  overflow: hidden;
+  overflow: visible;
   color: inherit;
   padding: 0 !important;
+  position: relative;
 }
 
 fieldset:disabled .settings-droptown.dropdown .dropbtn {
@@ -375,6 +376,13 @@ fieldset:disabled .settings-droptown.dropdown .dropbtn {
   min-width: 160px;
   z-index: 1;
   padding: 10px;
+  top: 100%;
+  bottom: auto;
+}
+
+.settings-droptown.dropdown-up .dropdown-content {
+  top: auto;
+  bottom: 100%;
 }
 
 fieldset:disabled .settings-droptown .dropdown-content {
