@@ -38,9 +38,9 @@ class CodecheckSchemaMigration extends Migration
                 $table->bigInteger('status_id')->autoIncrement()->primary();
                 $table->bigInteger('submission_id');
                 $table->foreign('submission_id', 'codecheck_status_metadata')->references('submission_id')->on('codecheck_metadata')->onDelete('cascade');
-                $table->string('status', 100);
-                $table->timestamp('timestamp')->nullable();
-                $table->string('user', 100);
+                $table->string('status', 300);
+                $table->timestamp('timestamp');
+                $table->string('user', 300);
                 $table->timestamps();
                 $table->index('status_id');
             });

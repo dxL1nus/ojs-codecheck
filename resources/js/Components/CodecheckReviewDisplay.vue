@@ -3,11 +3,11 @@
     <h3>{{ t("plugins.generic.codecheck.reviewTitle") }}</h3>
     
     <div v-if="submission?.codecheckOptIn" class="codecheck-info">
-      <div class="info-section">
-        <h4>{{ t("plugins.generic.codecheck.status") }}</h4>
-        <span class="status-badge" :class="statusClass">
+      <div class="border border-light p-4">
+        <h3 class="mb-2 text-lg-bold text-heading">{{ t("plugins.generic.codecheck.status") }}</h3>
+        <p class="text-sm-normal" :class="statusClass">
           {{ getStatusText() }}
-        </span>
+        </p>
       </div>
 
       <div class="info-section" v-if="hasMetadata && metadata.configVersion">
@@ -109,39 +109,44 @@ const hasMetadata = computed(() => {
   return Object.keys(metadata.value).length > 0;
 });
 
-function getStatus() {
-  if (metadata.value.certificate && metadata.value.checkTime) {
-    return 'complete';
-  } else if (hasMetadata.value) {
-    return 'in-progress';
+async function getStatus() {
+  try {
+    if (!props.submission?.id) {
+      throw new Error('Invalid submission object');
+    }
+
+    const submissionId = props.submission.id;
+    let apiUrl = pkp.context.apiBaseUrl;
+    apiUrl += 'codecheck';
+    apiUrl = `${apiUrl}/status?submissionId=${submissionId}`;
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'X-Csrf-Token': pkp.currentUser.csrfToken
+      }
+    });
+
+    const data = await response.json();
+
+    console.log(data);
+
+    return data.status;
+    
+  } catch (error) {
+    console.error('getStatus error:', error);
+    this.error = t('plugins.generic.codecheck.loadError') + ': ' + error.message;
   }
-  return 'pending';
 }
 
 const statusClass = computed(() => {
   const status = getStatus();
-  switch (status) {
-    case 'complete':
-      return 'status-complete';
-    case 'in-progress':
-      return 'status-in-progress';
-    case 'pending':
-    default:
-      return 'status-pending';
-  }
+  return 'status-' + status;
 });
 
 function getStatusText() {
   const status = getStatus();
-  switch (status) {
-    case 'complete':
-      return t("plugins.generic.codecheck.status.complete");
-    case 'in-progress':
-      return t("plugins.generic.codecheck.status.inProgress");
-    case 'pending':
-    default:
-      return t("plugins.generic.codecheck.status.pending");
-  }
+  return t(status);
 }
 
 function formatDate(dateString) {
@@ -151,27 +156,23 @@ function formatDate(dateString) {
 }
 
 function viewFullMetadata() {
-  const workflowStore = pkp.registry.getPiniaStore("workflow");
-  workflowStore.selectedMenuState = {
-    primaryMenuItem: 'workflow',
-    stageId: 999
-  };
+  // Sadly only works by bypassing the API, searching for the 'CODECHECK' Button and then pressing it by script
+  const allLinks = document.querySelectorAll('a, button, [role="button"]');
+  const codecheckLink = Array.from(allLinks).find(el => 
+    el.textContent.trim().includes(t("plugins.generic.codecheck.workflow.label"))
+  );
+  console.log('codecheck link:', codecheckLink);
+  if (codecheckLink) codecheckLink.click();
 }
 </script>
 
 <style scoped>
 .codecheck-review-display {
-  padding: var(--spacing-4);
+  padding: 0;
   background: white;
   border: 1px solid var(--color-border);
   border-radius: 4px;
   margin-bottom: var(--spacing-4);
-}
-
-.codecheck-review-display h3 {
-  margin: 0 0 var(--spacing-4) 0;
-  font: var(--font-xl-bold);
-  color: var(--text-color-heading);
 }
 
 .codecheck-info {

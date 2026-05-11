@@ -23,6 +23,7 @@ use APP\facades\Repo;
 use \Github\Client;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
+use APP\plugins\generic\codecheck\classes\Workflow\CodecheckStatusHandler;
 use Illuminate\Support\Facades\DB;
 
 class CodecheckApiHandler
@@ -81,6 +82,11 @@ class CodecheckApiHandler
                     'handler' => [$this, 'generateYaml'],
                     'roles' => $this->roles,
                 ],
+                [
+                    'route' => 'status',
+                    'handler' => [$this, 'getCurrentStatus'],
+                    'roles' => $this->roles,
+                ]
             ],
             'POST' => [
                 [
@@ -555,5 +561,24 @@ class CodecheckApiHandler
         }
 
         JsonResponse::staticResponse($result, 200);
+    }
+
+    public function getCurrentStatus(): void
+    {
+        $submissionId = (int) $this->codecheckMetadataHandler->getSubmissionId();
+
+        $statusRecord = CodecheckStatusHandler::getCurrentStatusData($submissionId);
+
+        if($statusRecord == null) {
+            JsonResponse::staticResponse([
+                'success' => false,
+                'statusRecord' => $statusRecord,
+            ], 500);
+        }
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'statusRecord' => $statusRecord,
+        ], 200);
     }
 }

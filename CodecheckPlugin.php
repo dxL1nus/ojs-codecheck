@@ -395,6 +395,7 @@ class CodecheckPlugin extends GenericPlugin
         if ($enabled) {
             $this->migration = new CodecheckSchemaMigration();
             $this->migration->up();
+            $this->migration->codecheckStatusUp();
         }
         
         return $result;
