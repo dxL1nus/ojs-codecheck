@@ -438,9 +438,10 @@ class CodecheckPlugin extends GenericPlugin
         $result = parent::setEnabled($enabled, $contextId);
         
         if ($enabled) {
-            $migration = new CodecheckSchemaMigration();
-            $migration->up();
-            $migration->issueLabelsUp();
+            $this->migration = new CodecheckSchemaMigration();
+            $this->migration->up();
+            $this->migration->issueLabelsUp();
+            $this->migration->codecheckStatusUp();
         }
         
         return $result;

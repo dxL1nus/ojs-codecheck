@@ -29,6 +29,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 use function Clue\StreamFilter\append;
+use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
+use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
+use APP\plugins\generic\codecheck\classes\Workflow\CodecheckStatusHandler;
+use Illuminate\Support\Facades\DB;
 
 class CodecheckApiHandler
 {
@@ -87,6 +91,11 @@ class CodecheckApiHandler
                     'handler' => [$this, 'getGithubRegisterRepositoryUrl'],
                     'roles' => $roles->readMetadata(),
                 ],
+                [
+                    'route' => 'status',
+                    'handler' => [$this, 'getCurrentStatus'],
+                    'roles' => $this->roles,
+                ]
             ],
             'POST' => [
                 [
@@ -932,6 +941,25 @@ class CodecheckApiHandler
 
         JsonResponse::staticResponse([
             'success' => true,
+        ], 200);
+    }
+
+    public function getCurrentStatus(): void
+    {
+        $submissionId = (int) $this->codecheckMetadataHandler->getSubmissionId();
+
+        $statusRecord = CodecheckStatusHandler::getCurrentStatusData($submissionId);
+
+        if($statusRecord == null) {
+            JsonResponse::staticResponse([
+                'success' => false,
+                'statusRecord' => $statusRecord,
+            ], 500);
+        }
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'statusRecord' => $statusRecord,
         ], 200);
     }
 }
