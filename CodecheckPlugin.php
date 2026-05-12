@@ -417,7 +417,7 @@ class CodecheckPlugin extends GenericPlugin
             $this->migration->up();
             $this->migration->codecheckStatusUp();
 
-            CodecheckStatusHandler::updateStatus(25, "plugins.generic.codecheck.status.stalled.author", 'test user');
+            CodecheckStatusHandler::updateStatus(25, "plugins.generic.codecheck.status.stalled.author", 1);
         }
         
         return $result;

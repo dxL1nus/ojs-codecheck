@@ -317,6 +317,30 @@ msgstr "CODECHECK Information"
 msgid "plugins.generic.codecheck.status"
 msgstr "Status"
 
+msgid "plugins.generic.codecheck.status.history"
+msgstr "CODECHECK Status History"
+
+msgid "plugins.generic.codecheck.status.history.timestamp"
+msgstr "Timestamp"
+
+msgid "plugins.generic.codecheck.status.history.user"
+msgstr "user"
+
+msgid "plugins.generic.codecheck.status.buttons.change"
+msgstr "Change"
+
+msgid "plugins.generic.codecheck.status.buttons.history"
+msgstr "History"
+
+msgid "plugins.generic.codecheck.status.modal.title"
+msgstr "Change CODECHECK Status"
+
+msgid "plugins.generic.codecheck.status.modal.label"
+msgstr "Select the new CODECHECK Status for this Submission"
+
+msgid "plugins.generic.codecheck.status.modal.change"
+msgstr "Change"
+
 msgid "plugins.generic.codecheck.status.complete"
 msgstr "Complete"
 
@@ -508,6 +532,9 @@ msgstr "Cancel"
 
 msgid "plugins.generic.codecheck.modal.add"
 msgstr "Add"
+
+msgid "plugins.generic.codecheck.modal.change"
+msgstr "Change"
 
 msgid "plugins.generic.codecheck.review.configVersion"
 msgstr "Config Version"
