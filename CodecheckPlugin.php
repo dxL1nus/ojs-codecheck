@@ -16,6 +16,7 @@ use APP\facades\Repo;
 use APP\plugins\generic\codecheck\api\v1\CodecheckApiHandler;
 use PKP\core\JSONMessage;
 use APP\plugins\generic\codecheck\classes\Constants;
+use APP\plugins\generic\codecheck\classes\Workflow\CodecheckStatusHandler;
 use APP\plugins\generic\codecheck\controllers\page\CodecheckPageHandler;
 
 class CodecheckPlugin extends GenericPlugin
@@ -69,6 +70,9 @@ class CodecheckPlugin extends GenericPlugin
             
             // Test if we can hook into the publication to block it if codecheck failed
             Hook::add('Publication::validatePublish', $this->validateCodecheckStatus(...));
+
+            // Add Localizations to Codecheck Status Preview
+            Hook::add('TemplateManager::display', $this->addCodecheckStatusLocalizations(...));
         }
 
         return $success;
@@ -94,6 +98,22 @@ class CodecheckPlugin extends GenericPlugin
         }
 
         return true;
+    }
+
+    public function addCodecheckStatusLocalizations($hookName, $args) {
+        $templateMgr = $args[0];
+        $templateMgr->addJavaScript(
+            'codecheck-locale-status',
+            'pkp.localeKeys = pkp.localeKeys || {};' .
+            'Object.assign(pkp.localeKeys, ' . json_encode(
+                array_combine(
+                    Constants::CODECHECK_STATUSES,
+                    array_map(fn($status) => __($status), Constants::CODECHECK_STATUSES)
+                )
+            ) . ');',
+            ['inline' => true, 'contexts' => ['backend']]
+        );
+        return false;
     }
     
     /**
@@ -396,6 +416,8 @@ class CodecheckPlugin extends GenericPlugin
             $this->migration = new CodecheckSchemaMigration();
             $this->migration->up();
             $this->migration->codecheckStatusUp();
+
+            CodecheckStatusHandler::updateStatus(25, "plugins.generic.codecheck.status.stalled.author", 'test user');
         }
         
         return $result;

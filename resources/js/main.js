@@ -2,14 +2,16 @@ import { createApp } from 'vue';
 import CodecheckManifestFiles from "./Components/CodecheckManifestFiles.vue";
 import CodecheckRepositoryList from "./Components/CodecheckRepositoryList.vue";
 import CodecheckReviewDisplay from "./Components/CodecheckReviewDisplay.vue";
-import CodecheckMetadataForm from "./Components/CodecheckMetadataForm.vue";
 import CodecheckDataAndSoftwareAvailability from "./Components/CodecheckDataAndSoftwareAvailability.vue";
+import CodecheckMetadataForm from './Components/CodecheckMetadataForm.vue';
+import CodecheckStatusForm from './Components/CodecheckStatusForm.vue';
 
 pkp.registry.registerComponent("CodecheckReviewDisplay", CodecheckReviewDisplay);
 pkp.registry.registerComponent("CodecheckMetadataForm", CodecheckMetadataForm);
 pkp.registry.registerComponent("CodecheckManifestFiles", CodecheckManifestFiles);
 pkp.registry.registerComponent("CodecheckRepositoryList", CodecheckRepositoryList);
 pkp.registry.registerComponent("CodecheckDataAndSoftwareAvailability", CodecheckDataAndSoftwareAvailability);
+pkp.registry.registerComponent("CodecheckStatusForm", CodecheckStatusForm);
 
 const { useLocalize } = pkp.modules.useLocalize;
 const { t } = useLocalize();
@@ -87,6 +89,29 @@ pkp.registry.storeExtend("workflow", (piniaContext) => {
     }
     
     return primaryItems;
+  });
+
+  workflowStore.extender.extendFn("getSecondaryItems", (sidebarItems, args) => {
+    const store = pkp.registry.stores?.workflow;
+    console.log(store?.extender);
+    const submission = args?.submission;
+
+    if (
+      args?.selectedMenuState?.primaryMenuItem === "workflow" &&
+      args?.selectedMenuState?.stageId === 999
+    ) {
+      return [
+        {
+          component: "CodecheckStatusForm",
+          props: {
+            submission: submission,
+            canEdit: true
+          },
+        },
+      ];
+    }
+
+    return sidebarItems;
   });
 });
 
