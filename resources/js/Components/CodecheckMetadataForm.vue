@@ -1541,11 +1541,12 @@ export default {
 
 .codecheck-metadata-form .field-group {
   margin-bottom: 2rem;
+  background-color: #fff;
 }
 
 .codecheck-metadata-form .form-details .field-group {
-    border: 2px solid #ccc;
-    padding: 1.5rem 1.5rem;
+  border: 2px solid #ccc;
+  padding: 1.5rem 1.5rem;
 }
 
 .codecheck-metadata-form .field-header {
@@ -2142,5 +2143,9 @@ fieldset:disabled .certificate-identifier-select .dropdown-content {
   font-style: italic;
   margin-left: 5px;
   color: inherit;
+}
+
+.filePanel__header {
+  background-color: #f3f3f3;
 }
 </style>
