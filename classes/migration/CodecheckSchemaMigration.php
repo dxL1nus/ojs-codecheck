@@ -54,7 +54,7 @@ class CodecheckSchemaMigration extends Migration
                 $table->foreign('submission_id', 'codecheck_status_metadata')->references('submission_id')->on('codecheck_metadata')->onDelete('cascade');
                 $table->string('status', 300);
                 $table->timestamp('timestamp');
-                $table->string('user', 300);
+                $table->bigInteger('user_id');
                 $table->timestamps();
                 $table->index('status_id');
             });
@@ -93,6 +93,7 @@ class CodecheckSchemaMigration extends Migration
 
     public function down(): void
     {
+        Schema::dropIfExists('codecheck_status');
         Schema::dropIfExists('codecheck_metadata');
     }
 

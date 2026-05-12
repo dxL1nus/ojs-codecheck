@@ -23,8 +23,33 @@
                     "
                     type="button"
                     href="false"
+                    @click="showHistoryModal"
                 >
-                    Change
+                    {{ t('plugins.generic.codecheck.status.buttons.history') }}
+                </button>
+                <button
+                    class="
+                        pkpButton
+                        inline-flex
+                        relative
+                        items-center
+                        gap-x-1 
+                        text-lg-semibold
+                        text-primary
+                        border-light 
+                        hover:text-hover
+                        disabled:text-disabled 
+                        bg-secondary
+                        py-[0.4375rem]
+                        px-3
+                        border
+                        rounded
+                    "
+                    type="button"
+                    href="false"
+                    @click="showStatusModal"
+                >
+                    {{ t('plugins.generic.codecheck.status.buttons.change') }}
                 </button>
             </div>
         </div>
@@ -75,6 +100,7 @@ export default {
       saveMessageType: '',
       hasUnsavedChanges: false,
       statusData: [],
+      allStatuses: [],
     }
   },
   computed: {
@@ -112,8 +138,10 @@ export default {
             });
 
             const data = await response.json();
+            console.log("Status data", data);
             this.statusData = data.statusRecord;
-            
+            this.allStatuses = data.allStatuses;
+
             this.dataLoaded = true;
         } catch (error) {
             console.error('getStatus error:', error);
@@ -123,6 +151,168 @@ export default {
     },
     getStatusText() {
         return this.t(this.statusData.status);
+    },
+    getStatusSelect() {
+        let statusSelectString = '<select id="codecheck-status-select">';
+        this.allStatuses.forEach(element => {
+            if(element === this.statusData.status) {
+                statusSelectString += '<option value="' + element + '" selected>' + this.t(element) + '</option>';
+            } else {
+                statusSelectString += '<option value="' + element + '">' + this.t(element) + '</option>';
+            }
+        });
+        statusSelectString += '</select>';
+        return statusSelectString;
+    },
+    async showStatusModal() {
+      const { useModal } = pkp.modules.useModal;
+      const { openDialog } = useModal();
+
+      const modalHtml = '<div class="modal-form">' +
+        '<div class="modal-field">' +
+        '<label for="checker-name" class="modal-label">' + this.t('plugins.generic.codecheck.status.modal.label') + '</label>' +
+        this.getStatusSelect() +
+        '</div>';
+
+      openDialog({
+        title: this.t('plugins.generic.codecheck.status.modal.title'),
+        message: modalHtml,
+        actions: [
+          {
+            label: this.t('plugins.generic.codecheck.modal.cancel'),
+            callback: (close) => close()
+          },
+          {
+            label: this.t('plugins.generic.codecheck.modal.change'),
+            isPrimary: true,
+            callback: async (close) => {
+              const statusSelect = document.getElementById('codecheck-status-select');
+              await this.updateStatus(statusSelect.value, pkp.currentUser);
+              close();
+            }
+          }
+        ]
+      });
+    },
+    async getStatusHistory() {
+        try {
+            if (!this.submission?.id) return;
+
+            const submissionId = this.submission.id;
+            const apiUrl = `${pkp.context.apiBaseUrl}codecheck/status/history?submissionId=${submissionId}`;
+            
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: { 'X-Csrf-Token': pkp.currentUser.csrfToken }
+            });
+
+            const data = await response.json();
+            const statusHistory = data.statusHistory;
+
+            return statusHistory;
+        } catch (error) {
+            console.error('getStatus error:', error);
+        }
+    },
+    async getSTatusHistoryTableRows() {
+        const statusHistory = await this.getStatusHistory();
+        let statusHistoryRows = "";
+        for (const element of statusHistory) {
+            const user = await this.getUser(element.user_id);
+            statusHistoryRows += `
+                <tr class="border-separate border border-light even:bg-tertiary">
+                    <td scope="false" class="border-b border-light px-2 py-2 text-start text-base-normal first:border-s first:ps-3 last:border-e last:pe-3">
+                        <div class="flex items-center">
+                            <span class="text-base-normal text-default">${element.timestamp}</span>
+                        </div>
+                    </td>
+                    <td scope="false" class="border-b border-light px-2 py-2 text-start text-base-normal first:border-s first:ps-3 last:border-e last:pe-3 whitespace-nowrap">
+                        <span class="pkpBadge pkpBadge--isPrimary">
+                            <div class="flex items-center justify-center">${this.t(element.status)}</div>
+                        </span>
+                    </td>
+                    <td scope="false" class="border-b border-light px-2 py-2 text-start text-base-normal first:border-s first:ps-3 last:border-e last:pe-3 whitespace-nowrap">
+                        <span class="text-base-normal text-default">${user.userName}</span>
+                    </td>
+                </tr>
+            `
+        };
+        return statusHistoryRows;
+    },
+    async showHistoryModal() {
+      const { useModal } = pkp.modules.useModal;
+      const { openDialog } = useModal();
+
+      const modalHtml = '<div class="modal-form">' +
+        '<div class="modal-field">' +
+        `<table class="w-full max-w-full border-separate border-spacing-0" aria-labelledby="v-25" aria-describedby="v-26">  
+            <thead>
+                <tr class="bg bg-default">
+                    <th scope="col" class="whitespace-nowrap border-b border-t border-light px-2 py-4 text-start text-base-normal uppercase text-heading first:border-s first:ps-3 last:border-e last:pe-3">
+                        <span>${this.t('plugins.generic.codecheck.status.history.timestamp')}</span>
+                    </th>
+                    <th scope="col" class="whitespace-nowrap border-b border-t border-light px-2 py-4 text-start text-base-normal uppercase text-heading first:border-s first:ps-3 last:border-e last:pe-3">
+                        <span>${this.t('plugins.generic.codecheck.status')}</span>
+                    </th>
+                    <th scope="col" class="whitespace-nowrap border-b border-t border-light px-2 py-4 text-start text-base-normal uppercase text-heading first:border-s first:ps-3 last:border-e last:pe-3">
+                        <span>${this.t('plugins.generic.codecheck.status.history.user')}</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                ${await this.getSTatusHistoryTableRows()}
+            </tbody>
+        </table>` +
+        '</div>';
+
+      openDialog({
+        title: this.t('plugins.generic.codecheck.status.history'),
+        message: modalHtml,
+        actions: [
+          {
+            label: this.t('plugins.generic.codecheck.modal.cancel'),
+            callback: (close) => close()
+          },
+        ]
+      });
+    },
+    async updateStatus(status, user) {
+        try {
+            if (!this.submission?.id) return;
+            const submissionId = this.submission.id;
+            let apiUrl = pkp.context.apiBaseUrl + 'codecheck';
+            const response = await fetch(`${apiUrl}/status/update?submissionId=${submissionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Csrf-Token': pkp.currentUser.csrfToken,
+                },
+                body: JSON.stringify({ status: status, userId: user.id }),
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                console.log('Success:', data.statusRecord);
+                this.statusData = data.statusRecord;
+                this.allStatuses = data.allStatuses;
+            } else {
+                console.error('Error:', data.error);
+            }
+        } catch (error) {
+            console.error('Failed to update Status: ', error);
+        }
+    },
+    async getUser(userId) {
+        try {
+            const response = await fetch(`${pkp.context.apiBaseUrl}users/${userId}`, {
+                method: 'GET',
+                headers: { 'X-Csrf-Token': pkp.currentUser.csrfToken }
+            });
+            const user = await response.json();
+            return user;
+        } catch (error) {
+            console.error(`User with ID: ${userId} not found. `, error);
+        }
     }
   }
 }

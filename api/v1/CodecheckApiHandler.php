@@ -95,7 +95,12 @@ class CodecheckApiHandler
                     'route' => 'status',
                     'handler' => [$this, 'getCurrentStatus'],
                     'roles' => $this->roles,
-                ]
+                ],
+                [
+                    'route' => 'status/history',
+                    'handler' => [$this, 'getStatusHistory'],
+                    'roles' => $this->roles,
+                ],
             ],
             'POST' => [
                 [
@@ -127,6 +132,11 @@ class CodecheckApiHandler
                     'route' => 'yaml/validate',
                     'handler' => [$this, 'validateYamlStructure'],
                     'roles' => $roles->readMetadata(),
+                ],
+                [
+                    'route' => 'status/update',
+                    'handler' => [$this, 'updateStatus'],
+                    'roles' => $this->roles,
                 ],
             ],
         ];
@@ -954,12 +964,74 @@ class CodecheckApiHandler
             JsonResponse::staticResponse([
                 'success' => false,
                 'statusRecord' => $statusRecord,
-            ], 500);
+                'allStatuses' => Constants::CODECHECK_STATUSES,
+            ], 400);
         }
 
         JsonResponse::staticResponse([
             'success' => true,
             'statusRecord' => $statusRecord,
+            'allStatuses' => Constants::CODECHECK_STATUSES,
+        ], 200);
+    }
+
+    public function getStatusHistory(): void
+    {
+        $submissionId = (int) $this->codecheckMetadataHandler->getSubmissionId();
+
+        $statusHistory = CodecheckStatusHandler::getStatusDataHistory($submissionId);
+
+        if($statusHistory == null) {
+            JsonResponse::staticResponse([
+                'success' => false,
+                'statusHistory' => $statusHistory,
+            ], 400);
+        }
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'statusHistory' => $statusHistory,
+        ], 200);
+    }
+
+    public function updateStatus(): void
+    {
+        $submissionId = (int) $this->codecheckMetadataHandler->getSubmissionId();
+
+        $postParams = json_decode(file_get_contents('php://input'), true);
+        $status = $postParams["status"];
+        $userId = $postParams["userId"];
+
+        if(!is_string($status) || !is_int($userId)) {
+            JsonResponse::staticResponse([
+                'success' => false,
+                'statusRecord' => [
+                    'status' => $status,
+                    'userId' => $userId
+                ],
+                'allStatuses' => Constants::CODECHECK_STATUSES,
+                'error' => 'Bad Request: Please provide a Status form of string and a User ID in the form of int.'
+            ], 400);
+        }
+
+        $statusUpdate = CodecheckStatusHandler::updateStatus($submissionId, $status, $userId);
+
+        if($statusUpdate == false) {
+            JsonResponse::staticResponse([
+                'success' => true,
+                'statusRecord' => [
+                    'status' => $status,
+                    'userId' => $userId
+                ],
+                'allStatuses' => Constants::CODECHECK_STATUSES,
+                'error' => "Inserting into the CODECHECK Status Database went wrong."
+            ], 500);
+        }
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'statusRecord' => $statusUpdate,
+            'allStatuses' => Constants::CODECHECK_STATUSES,
         ], 200);
     }
 }
