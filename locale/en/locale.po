@@ -375,7 +375,7 @@ msgid "plugins.generic.codecheck.status.history.timestamp"
 msgstr "Timestamp"
 
 msgid "plugins.generic.codecheck.status.history.user"
-msgstr "user"
+msgstr "Changed By"
 
 msgid "plugins.generic.codecheck.status.buttons.change"
 msgstr "Change"

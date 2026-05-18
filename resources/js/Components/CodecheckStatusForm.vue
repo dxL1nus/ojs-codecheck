@@ -231,7 +231,7 @@ export default {
                         </span>
                     </td>
                     <td scope="false" class="border-b ${mostRecentStatus ? "border-mostRecentStatus-vertical border-mostRecentStatus-right" : "border-light first:border-s last:border-e"} px-2 py-2 text-start text-base-normal first:ps-3 last:pe-3 whitespace-nowrap">
-                        <span class="text-base-normal text-default"><a href="mailto:${user.email}">${user.fullName}</a></span>
+                        <span class="text-base-normal text-default">${user.email === null ? user.fullName : "<a href='mailto:" + user.email + "'>" + user.fullName + "</a>"}</span>
                     </td>
                 </tr>
             `;
@@ -319,6 +319,13 @@ export default {
         }
     },
     async getUser(userId) {
+        // if the user is the Plugin itsself
+        if(userId === -1) {
+            return {
+                fullName: "CODECHECK Plugin",
+                email: null
+            }
+        }
         try {
             const response = await fetch(`${pkp.context.apiBaseUrl}users/${userId}`, {
                 method: 'GET',

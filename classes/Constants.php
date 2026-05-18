@@ -26,16 +26,26 @@ class Constants
     /**
      * The possible Codecheck Statuses
      */
+    public const CODECHECK_STATUS_NEEDS_CODECHECKER = 'plugins.generic.codecheck.status.needsCodechecker';
+    public const CODECHECK_STATUS_ASSIGNED_CODECHECKER = 'plugins.generic.codecheck.status.assignedCodechecker';
+    public const CODECHECK_STATUS_STALLED_AUTHOR = 'plugins.generic.codecheck.status.stalled.author';
+    public const CODECHECK_STATUS_STALLED_CODECHECKER = 'plugins.generic.codecheck.status.stalled.codechecker';
+    public const CODECHECK_STATUS_COMPLETED_UNSUCCESSFUL = 'plugins.generic.codecheck.status.completed.unsuccessful';
+    public const CODECHECK_STATUS_COMPLETED_PARTIAL_REPRODUCTION = 'plugins.generic.codecheck.status.completed.partialReproduction';
+    public const CODECHECK_STATUS_COMPLETED_FULL_REPRODUCTION = 'plugins.generic.codecheck.status.completed.fullReproduction';
+    public const CODECHECK_STATUS_PUBLISHED_PARTIAL_REPRODUCTION = 'plugins.generic.codecheck.status.publishedCertificate.partialReproduction';
+    public const CODECHECK_STATUS_PUBLISHED_FULL_REPRODUCTION = 'plugins.generic.codecheck.status.publishedCertificate.fullReproduction';
+
     public const CODECHECK_STATUSES = [
-        'plugins.generic.codecheck.status.needsCodechecker',
-        'plugins.generic.codecheck.status.assignedCodechecker',
-        'plugins.generic.codecheck.status.stalled.author',
-        'plugins.generic.codecheck.status.stalled.codechecker',
-        'plugins.generic.codecheck.status.completed.unsuccessful',
-        'plugins.generic.codecheck.status.completed.partialReproduction',
-        'plugins.generic.codecheck.status.completed.fullReproduction',
-        'plugins.generic.codecheck.status.publishedCertificate.partialReproduction',
-        'plugins.generic.codecheck.status.publishedCertificate.fullReproduction',
+        Constants::CODECHECK_STATUS_NEEDS_CODECHECKER,
+        Constants::CODECHECK_STATUS_ASSIGNED_CODECHECKER,
+        Constants::CODECHECK_STATUS_STALLED_AUTHOR,
+        Constants::CODECHECK_STATUS_STALLED_CODECHECKER,
+        Constants::CODECHECK_STATUS_COMPLETED_UNSUCCESSFUL,
+        Constants::CODECHECK_STATUS_COMPLETED_PARTIAL_REPRODUCTION,
+        Constants::CODECHECK_STATUS_COMPLETED_FULL_REPRODUCTION,
+        Constants::CODECHECK_STATUS_PUBLISHED_PARTIAL_REPRODUCTION,
+        Constants::CODECHECK_STATUS_PUBLISHED_FULL_REPRODUCTION,
     ];
     
     /**
