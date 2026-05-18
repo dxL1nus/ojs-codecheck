@@ -16,7 +16,7 @@ class CodecheckStatusHandler {
     public static function getStatusDataHistory(int $submissionId): object {
         return DB::table('codecheck_status')
             ->where('submission_id', $submissionId)
-            ->orderBy('timestamp')
+            ->orderBy('timestamp', 'desc')
             ->orderBy('status_id', 'desc')
             ->get();
     }

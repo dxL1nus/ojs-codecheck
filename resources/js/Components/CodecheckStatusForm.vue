@@ -214,55 +214,71 @@ export default {
             console.error('getStatus error:', error);
         }
     },
-    async getSTatusHistoryTableRows() {
-        const statusHistory = await this.getStatusHistory();
+    async getStatusHistoryTableRows(statusHistory, mostRecentStatus) {
         let statusHistoryRows = "";
         for (const element of statusHistory) {
             const user = await this.getUser(element.user_id);
             statusHistoryRows += `
-                <tr class="border-separate border border-light even:bg-tertiary">
-                    <td scope="false" class="border-b border-light px-2 py-2 text-start text-base-normal first:border-s first:ps-3 last:border-e last:pe-3">
+                <tr class="border-separate border ${mostRecentStatus ? "padding-mostRecentStatus" : "border-light"} even:bg-tertiary">
+                    <td scope="false" class="border-b ${mostRecentStatus ? "border-mostRecentStatus-vertical border-mostRecentStatus-left" : "border-light first:border-s last:border-e"} px-2 py-2 text-start text-base-normal first:ps-3 last:pe-3">
                         <div class="flex items-center">
-                            <span class="text-base-normal text-default">${element.timestamp}</span>
+                            <span class="text-base-normal text-default">${mostRecentStatus ? "<span style='font-weight:bold'>Current Status</span><br>" : ""}${element.timestamp}</span>
                         </div>
                     </td>
-                    <td scope="false" class="border-b border-light px-2 py-2 text-start text-base-normal first:border-s first:ps-3 last:border-e last:pe-3 whitespace-nowrap">
-                        <span class="pkpBadge pkpBadge--isPrimary">
+                    <td scope="false" class="border-b ${mostRecentStatus ? "border-mostRecentStatus-vertical" : "border-light first:border-s last:border-e"} px-2 py-2 text-start text-base-normal first:ps-3 last:pe-3 whitespace-nowrap">
+                        <span class="pkpBadge ${mostRecentStatus ? "pkpBadge--isPrimary" : "codecheckBadge--isInvisible"}">
                             <div class="flex items-center justify-center">${this.t(element.status)}</div>
                         </span>
                     </td>
-                    <td scope="false" class="border-b border-light px-2 py-2 text-start text-base-normal first:border-s first:ps-3 last:border-e last:pe-3 whitespace-nowrap">
-                        <span class="text-base-normal text-default">${user.userName}</span>
+                    <td scope="false" class="border-b ${mostRecentStatus ? "border-mostRecentStatus-vertical border-mostRecentStatus-right" : "border-light first:border-s last:border-e"} px-2 py-2 text-start text-base-normal first:ps-3 last:pe-3 whitespace-nowrap">
+                        <span class="text-base-normal text-default"><a href="mailto:${user.email}">${user.fullName}</a></span>
                     </td>
                 </tr>
-            `
+            `;
         };
         return statusHistoryRows;
+    },
+    async statusTableSegment(statusHistory, tableTop) {
+        let table = `<div class="modal-field ${tableTop ? "" : "status-table-wrapper"}">` +
+        '<table class="w-full max-w-full border-collapse border-spacing-0" aria-labelledby="v-25" aria-describedby="v-26">';
+        
+        if(tableTop) {
+            table += `
+                <thead>
+                    <tr class="bg bg-default">
+                        <th scope="col" class="whitespace-nowrap border-b border-t border-light px-2 py-4 text-start text-base-normal uppercase text-heading first:border-s first:ps-3 last:border-e last:pe-3">
+                            <span>${this.t('plugins.generic.codecheck.status.history.timestamp')}</span>
+                        </th>
+                        <th scope="col" class="whitespace-nowrap border-b border-t border-light px-2 py-4 text-start text-base-normal uppercase text-heading first:border-s first:ps-3 last:border-e last:pe-3">
+                            <span>${this.t('plugins.generic.codecheck.status')}</span>
+                        </th>
+                        <th scope="col" class="whitespace-nowrap border-b border-t border-light px-2 py-4 text-start text-base-normal uppercase text-heading first:border-s first:ps-3 last:border-e last:pe-3">
+                            <span>${this.t('plugins.generic.codecheck.status.history.user')}</span>
+                        </th>
+                    </tr>
+                </thead>
+            `;
+        }
+        
+        table += `
+            <tbody>
+                ${await this.getStatusHistoryTableRows(statusHistory, tableTop)}
+            </tbody>
+        </table>`
+        
+        return table;
+    },
+    async buildStatusHistoryTable() {
+        const statusHistory = await this.getStatusHistory();
+        const [currentStatus, ...statusRest] = statusHistory;
+        return await this.statusTableSegment([currentStatus], true) + await this.statusTableSegment(statusRest, false);
     },
     async showHistoryModal() {
       const { useModal } = pkp.modules.useModal;
       const { openDialog } = useModal();
 
       const modalHtml = '<div class="modal-form">' +
-        '<div class="modal-field">' +
-        `<table class="w-full max-w-full border-separate border-spacing-0" aria-labelledby="v-25" aria-describedby="v-26">  
-            <thead>
-                <tr class="bg bg-default">
-                    <th scope="col" class="whitespace-nowrap border-b border-t border-light px-2 py-4 text-start text-base-normal uppercase text-heading first:border-s first:ps-3 last:border-e last:pe-3">
-                        <span>${this.t('plugins.generic.codecheck.status.history.timestamp')}</span>
-                    </th>
-                    <th scope="col" class="whitespace-nowrap border-b border-t border-light px-2 py-4 text-start text-base-normal uppercase text-heading first:border-s first:ps-3 last:border-e last:pe-3">
-                        <span>${this.t('plugins.generic.codecheck.status')}</span>
-                    </th>
-                    <th scope="col" class="whitespace-nowrap border-b border-t border-light px-2 py-4 text-start text-base-normal uppercase text-heading first:border-s first:ps-3 last:border-e last:pe-3">
-                        <span>${this.t('plugins.generic.codecheck.status.history.user')}</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                ${await this.getSTatusHistoryTableRows()}
-            </tbody>
-        </table>` +
+        await this.buildStatusHistoryTable() +
         '</div>';
 
       openDialog({
@@ -319,4 +335,40 @@ export default {
 </script>
 
 <style>
+.border-mostRecentStatus-vertical {
+    border-top: 3px solid #006798 !important;
+    border-bottom: 3px solid #006798 !important;
+}
+
+.border-mostRecentStatus-left {
+    border-left: 3px solid #006798 !important;
+}
+
+.border-mostRecentStatus-right {
+    border-right: 3px solid #006798 !important;
+}
+
+.padding-mostRecentStatus {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.codecheckBadge--isInvisible {
+    border-color: transparent;
+    color: inherit;
+    background-color: transparent;
+    padding: 0 !important;
+}
+
+.status-table-wrapper {
+    height: 200px;
+    overflow: auto;
+    margin-top: 1rem;
+}
+
+.status-table-wrapper table th {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+}
 </style>
