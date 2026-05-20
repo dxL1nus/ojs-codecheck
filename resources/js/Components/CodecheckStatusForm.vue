@@ -104,23 +104,21 @@ export default {
     }
   },
   computed: {
-    
+    codecheckMetadataLastSavedAt() {
+        const pinia = pkp.registry._piniaInstance;
+        const workflowStore = pinia?._s?.get('workflow');
+
+        return workflowStore?.codecheck?.statusUpdateEvent ?? null;
+    }
   },
   mounted() {
     this.loadStatusData();
   },
   watch: {
-    metadata: {
-      handler() {
-        this.hasUnsavedChanges = true;
-      },
-      deep: true
-    },
-    repositories: {
-      handler() {
-        this.hasUnsavedChanges = true;
-      },
-      deep: true
+    async codecheckMetadataLastSavedAt(newMetadataSaved) {
+        if (newMetadataSaved !== null) {
+            await this.automaticStatusUpdate();
+        }
     }
   },
   methods: {
@@ -291,6 +289,12 @@ export default {
           },
         ]
       });
+    },
+    async automaticStatusUpdate() {
+        const status = "";
+        const user = {id: -1};
+
+        await this.updateStatus(status, user);
     },
     async updateStatus(status, user) {
         try {

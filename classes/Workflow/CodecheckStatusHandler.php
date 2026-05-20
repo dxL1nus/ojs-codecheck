@@ -14,7 +14,7 @@ class CodecheckStatusHandler {
             ->first();
     }
 
-    public static function getStatusDataHistory(int $submissionId): object {
+    public static function getStatusDataHistory(int $submissionId): object|null {
         return DB::table('codecheck_status')
             ->where('submission_id', $submissionId)
             ->orderBy('timestamp', 'desc')
@@ -39,12 +39,21 @@ class CodecheckStatusHandler {
         return CodecheckStatusHandler::getCurrentStatusData($submissionId);
     }
 
-    public static function instanciateStatus(array $submissionMetadata): object|false {
+    public static function automaticStatusUpdate(array $submissionMetadata): object|null {
         $submissionId = $submissionMetadata['submissionId'];
-        $status = Constants::CODECHECK_STATUS_NEEDS_CODECHECKER;
-        if(!empty($submissionMetadata['codecheck']['codecheckers'])) {
-            $status = Constants::CODECHECK_STATUS_ASSIGNED_CODECHECKER;
+        $statusHistory = CodecheckStatusHandler::getStatusDataHistory($submissionId);
+    
+        error_log("Status History: " . json_encode($statusHistory));
+        error_log("Status History count: " . $statusHistory->count());
+        error_log("Is null: " . ($statusHistory === null ? 'true' : 'false'));
+
+        if($statusHistory == null || $statusHistory->count() < 2) {
+            $status = Constants::CODECHECK_STATUS_NEEDS_CODECHECKER;
+            if(!empty($submissionMetadata['codecheck']['codecheckers'])) {
+                $status = Constants::CODECHECK_STATUS_ASSIGNED_CODECHECKER;
+            }
+            return CodecheckStatusHandler::updateStatus($submissionId, $status, -1);
         }
-        return CodecheckStatusHandler::updateStatus($submissionId, $status, -1);
+        return CodecheckStatusHandler::getCurrentStatusData($submissionId);
     }
 }

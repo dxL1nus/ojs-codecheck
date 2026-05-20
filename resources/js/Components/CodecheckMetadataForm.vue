@@ -819,6 +819,15 @@ export default {
       }
     },
 
+    triggerCodecheckStatusUpdateEvent() {
+      const pinia = pkp.registry._piniaInstance;
+      const workflowStore = pinia?._s?.get('workflow');
+
+      if (workflowStore?.codecheck) {
+        workflowStore.codecheck.statusUpdateEvent = Date.now();
+      }
+    },
+
     async saveMetadata() {
       if (!this.validateForm()) {
         return;
@@ -876,6 +885,7 @@ export default {
 
         this.hasUnsavedChanges = false;
 
+        this.triggerCodecheckStatusUpdateEvent();
         this.triggerRegisterIssueDisplayUpdateEvent();
 
         this.showMessage(this.t('plugins.generic.codecheck.savedSuccessfully'), 'success');

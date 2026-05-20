@@ -961,19 +961,12 @@ class CodecheckApiHandler
         $statusRecord = CodecheckStatusHandler::getCurrentStatusData($submissionId);
 
         if($statusRecord == null) {
-            // There is no status recorded for this submission yet.
-            // Therefore we set the first status depending on the current state of the submissions metadata.
-            $submissionMetadata = $this->codecheckMetadataHandler->getMetadata($this->request, $submissionId);
-            $statusRecord = CodecheckStatusHandler::instanciateStatus($submissionMetadata);
-
-            if(!$statusRecord) {
-                JsonResponse::staticResponse([
-                    'success' => false,
-                    'error' => 'Soemthing went wrong when inserting into the OJS CODECHECK Status DB Table',
-                    'statusRecord' => null,
-                    'allStatuses' => Constants::CODECHECK_STATUSES,
-                ], 500);
-            }
+            JsonResponse::staticResponse([
+                'success' => false,
+                'error' => "There doesn't exist any Status in the OJS Databse for this submission Id yet.",
+                'statusRecord' => null,
+                'allStatuses' => Constants::CODECHECK_STATUSES,
+            ], 500);
         }
 
         JsonResponse::staticResponse([
@@ -1020,6 +1013,33 @@ class CodecheckApiHandler
                 'allStatuses' => Constants::CODECHECK_STATUSES,
                 'error' => 'Bad Request: Please provide a Status form of string and a User ID in the form of int.'
             ], 400);
+        }
+
+        if($userId == -1) {
+            $submissionMetadata = $this->codecheckMetadataHandler->getMetadata($this->request, $submissionId);
+            if(array_key_exists("error",$submissionMetadata)) {
+                JsonResponse::staticResponse([
+                    'success' => false,
+                    'error' => $submissionMetadata["error"],
+                    'allStatuses' => Constants::CODECHECK_STATUSES,
+                ], 400);
+            }
+            $statusUpdate = CodecheckStatusHandler::automaticStatusUpdate($submissionMetadata);
+
+            if($statusUpdate == null) {
+                JsonResponse::staticResponse([
+                    'success' => false,
+                    'statusRecord' => $statusUpdate,
+                    'allStatuses' => Constants::CODECHECK_STATUSES,
+                    'error' => "Status doesn't need to be automatically updated."
+                ], 200);
+            } else {
+                JsonResponse::staticResponse([
+                    'success' => true,
+                    'statusRecord' => $statusUpdate,
+                    'allStatuses' => Constants::CODECHECK_STATUSES,
+                ], 200);
+            }
         }
 
         $statusUpdate = CodecheckStatusHandler::updateStatus($submissionId, $status, $userId);

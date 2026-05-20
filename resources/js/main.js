@@ -25,6 +25,7 @@ pkp.registry.storeExtend("workflow", (piniaContext) => {
     registerIssueDisplayUpdateEvent: null,
     certificateIdentifier: null,
     issue: null,
+    statusUpdateEvent: null,
   });
 
   workflowStore.extender.extendFn("getMenuItems", (menuItems, args) => {
@@ -97,7 +98,6 @@ pkp.registry.storeExtend("workflow", (piniaContext) => {
 
   workflowStore.extender.extendFn("getSecondaryItems", (sidebarItems, args) => {
     const store = pkp.registry.stores?.workflow;
-    console.log(store?.extender);
     const submission = args?.submission;
 
     if (
