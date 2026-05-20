@@ -455,7 +455,7 @@ export default {
     // variable that stores if the Identifier was set and thus buttons should be disabled
     isIdentifierReserved() {
       return this.metadata.certificate.trim() !== '';
-    }
+    },
   },
   mounted() {
     this.loadData();
@@ -771,6 +771,15 @@ export default {
       }
     },
 
+    async triggerCodecheckStatusUpdateEvent() {
+      const pinia = pkp.registry._piniaInstance;
+      const workflowStore = pinia?._s?.get('workflow');
+
+      if (workflowStore?.codecheckMetadata) {
+        workflowStore.codecheckMetadata.lastSavedAt = Date.now();
+      }
+    },
+
     async saveMetadata() {
       if (!this.validateForm()) {
         return;
@@ -815,6 +824,9 @@ export default {
         }
 
         this.hasUnsavedChanges = false;
+
+        await this.triggerCodecheckStatusUpdateEvent();
+
         this.showMessage(this.t('plugins.generic.codecheck.savedSuccessfully'), 'success');
       } catch (error) {
         console.error('Save error:', error);

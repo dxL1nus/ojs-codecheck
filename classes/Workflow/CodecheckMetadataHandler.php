@@ -64,7 +64,7 @@ class CodecheckMetadataHandler
         $metadata = DB::table('codecheck_metadata')
             ->where('submission_id', $submissionId)
             ->first();
-
+            
         $response = [
             'submissionId' => $submissionId,
             'submission' => [

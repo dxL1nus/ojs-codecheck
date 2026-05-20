@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import { createApp, reactive  } from 'vue';
 import CodecheckManifestFiles from "./Components/CodecheckManifestFiles.vue";
 import CodecheckRepositoryList from "./Components/CodecheckRepositoryList.vue";
 import CodecheckReviewDisplay from "./Components/CodecheckReviewDisplay.vue";
@@ -18,6 +18,10 @@ const { t } = useLocalize();
 
 pkp.registry.storeExtend("workflow", (piniaContext) => {
   const workflowStore = piniaContext.store;
+
+  workflowStore.codecheckMetadata = reactive({
+    lastSavedAt: null,
+  });
 
   workflowStore.extender.extendFn("getMenuItems", (menuItems, args) => {
     const submission = args?.submission;
@@ -93,7 +97,6 @@ pkp.registry.storeExtend("workflow", (piniaContext) => {
 
   workflowStore.extender.extendFn("getSecondaryItems", (sidebarItems, args) => {
     const store = pkp.registry.stores?.workflow;
-    console.log(store?.extender);
     const submission = args?.submission;
 
     if (

@@ -583,12 +583,19 @@ class CodecheckApiHandler
             // There is no status recorded for this submission yet.
             // Therefore we set the first status depending on the current state of the submissions metadata.
             $submissionMetadata = $this->codecheckMetadataHandler->getMetadata($this->request, $submissionId);
+            if(array_key_exists("error",$submissionMetadata)) {
+                JsonResponse::staticResponse([
+                    'success' => false,
+                    'error' => $submissionMetadata["error"],
+                    'allStatuses' => Constants::CODECHECK_STATUSES,
+                ], 400);
+            }
             $statusRecord = CodecheckStatusHandler::instanciateStatus($submissionMetadata);
 
             if(!$statusRecord) {
                 JsonResponse::staticResponse([
                     'success' => false,
-                    'error' => 'Soemthing went wrong when inserting into the OJS CODECHECK Status DB Table',
+                    'error' => 'Something went wrong when inserting into the OJS CODECHECK Status DB Table',
                     'statusRecord' => null,
                     'allStatuses' => Constants::CODECHECK_STATUSES,
                 ], 500);
