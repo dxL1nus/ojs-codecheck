@@ -19,8 +19,8 @@ const { t } = useLocalize();
 pkp.registry.storeExtend("workflow", (piniaContext) => {
   const workflowStore = piniaContext.store;
 
-  workflowStore.codecheckMetadata = reactive({
-    lastSavedAt: null,
+  workflowStore.codecheck = reactive({
+    statusUpdateEvent: null,
   });
 
   workflowStore.extender.extendFn("getMenuItems", (menuItems, args) => {

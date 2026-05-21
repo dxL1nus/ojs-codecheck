@@ -108,7 +108,7 @@ export default {
         const pinia = pkp.registry._piniaInstance;
         const workflowStore = pinia?._s?.get('workflow');
 
-        return workflowStore?.codecheckMetadata?.lastSavedAt ?? null;
+        return workflowStore?.codecheck?.statusUpdateEvent ?? null;
     }
   },
   mounted() {
@@ -117,7 +117,7 @@ export default {
   watch: {
     async codecheckMetadataLastSavedAt(newMetadataSaved) {
         if (newMetadataSaved !== null) {
-            await this.loadStatusData();
+            await this.automaticStatusUpdate();
         }
     }
   },
@@ -289,6 +289,12 @@ export default {
           },
         ]
       });
+    },
+    async automaticStatusUpdate() {
+        const status = "";
+        const user = {id: -1};
+
+        await this.updateStatus(status, user);
     },
     async updateStatus(status, user) {
         try {

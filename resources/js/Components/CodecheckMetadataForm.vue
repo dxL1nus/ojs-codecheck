@@ -775,8 +775,8 @@ export default {
       const pinia = pkp.registry._piniaInstance;
       const workflowStore = pinia?._s?.get('workflow');
 
-      if (workflowStore?.codecheckMetadata) {
-        workflowStore.codecheckMetadata.lastSavedAt = Date.now();
+      if (workflowStore?.codecheck) {
+        workflowStore.codecheck.statusUpdateEvent = Date.now();
       }
     },
 
