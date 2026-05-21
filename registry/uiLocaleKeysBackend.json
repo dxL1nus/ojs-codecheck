@@ -27,6 +27,7 @@
   "plugins.generic.codecheck.codecheckers.enterOrcid",
   "plugins.generic.codecheck.codecheckers.removeConfirm",
   "plugins.generic.codecheck.codecheckers.title",
+  "plugins.generic.codecheck.common.reload",
   "plugins.generic.codecheck.completionTime.label",
   "plugins.generic.codecheck.configVersion",
   "plugins.generic.codecheck.dataAvailability",

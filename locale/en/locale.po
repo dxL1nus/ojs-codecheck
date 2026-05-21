@@ -20,6 +20,9 @@ msgstr "No"
 msgid "plugins.generic.codecheck.ok"
 msgstr "Ok"
 
+msgid "plugins.generic.codecheck.common.reload"
+msgstr "Reload"
+
 msgid "plugins.generic.codecheck.request.failed"
 msgstr "Request failed"
 
