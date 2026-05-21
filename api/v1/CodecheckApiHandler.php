@@ -119,6 +119,11 @@ class CodecheckApiHandler
                     'handler' => [$this, 'updateStatus'],
                     'roles' => $this->roles,
                 ],
+                [
+                    'route' => 'users/roles/validation',
+                    'handler' => [$this, 'validateUserAccessRightsToStatus'],
+                    'roles' => $this->roles,
+                ],
             ],
         ];
 
@@ -679,6 +684,34 @@ class CodecheckApiHandler
             'success' => true,
             'statusRecord' => $statusUpdate,
             'allStatuses' => Constants::CODECHECK_STATUSES,
+        ], 200);
+    }
+
+    public function validateUserAccessRightsToStatus(): void
+    {
+        $postParams = json_decode(file_get_contents('php://input'), true);
+        $user = $postParams["user"];
+
+        if(!is_array($user["roles"])) {
+            JsonResponse::staticResponse([
+                'success' => false,
+                'error' => 'Bad Request: Please provide the current User in your request.'
+            ], 400);
+        }
+
+        $userRoles = $user["roles"];
+        $allowedToAccess = false;
+
+        foreach ($userRoles as $userRole) {
+            if($userRole == 16) {
+                $allowedToAccess = true;
+                break;
+            }
+        }
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'userAllowedToAccess' => $allowedToAccess,
         ], 200);
     }
 }
