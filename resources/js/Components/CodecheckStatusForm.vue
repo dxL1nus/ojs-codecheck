@@ -28,6 +28,7 @@
                     {{ t('plugins.generic.codecheck.status.buttons.history') }}
                 </button>
                 <button
+                    v-if="userAllowedToAccess"
                     class="
                         pkpButton
                         pkpButton--isPrimary
@@ -90,6 +91,7 @@ export default {
       hasUnsavedChanges: false,
       statusData: [],
       allStatuses: [],
+      userAllowedToAccess: false,
     }
   },
   computed: {
@@ -101,6 +103,7 @@ export default {
     }
   },
   mounted() {
+    this.validateUserAccessRights();
     this.loadStatusData();
   },
   watch: {
@@ -111,6 +114,29 @@ export default {
     }
   },
   methods: {
+    async validateUserAccessRights() {
+        try {
+            if (!this.submission?.id) return;
+
+            const submissionId = this.submission.id;
+            const apiUrl = `${pkp.context.apiBaseUrl}codecheck/users/roles/validation`;
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Csrf-Token': pkp.currentUser.csrfToken,
+                },
+                body: JSON.stringify({ user: pkp.currentUser }),
+            });
+
+            const data = await response.json();
+
+            this.userAllowedToAccess = data.userAllowedToAccess;
+        } catch (error) {
+            console.error('User Role Validation error:', error);
+        }
+    },
     async loadStatusData() {
         console.log('Loading the status Data', this.submission.id);
         try {
