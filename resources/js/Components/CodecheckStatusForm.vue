@@ -30,20 +30,8 @@
                 <button
                     class="
                         pkpButton
-                        inline-flex
-                        relative
-                        items-center
-                        gap-x-1 
-                        text-lg-semibold
-                        text-primary
-                        border-light 
-                        hover:text-hover
-                        disabled:text-disabled 
-                        bg-secondary
-                        py-[0.4375rem]
-                        px-3
-                        border
-                        rounded
+                        pkpButton--isPrimary
+                        codecheck-btn
                     "
                     type="button"
                     href="false"
@@ -53,14 +41,15 @@
                 </button>
             </div>
         </div>
-        <div v-if="loading" class="loading-state">
+        <div v-if="loading" class="flex flex-col justify-center items-center loading-state">
             <span class="pkpSpinner"></span>
             <p>{{ t('common.loading') }}</p>
         </div>
 
-        <div v-else-if="error" class="error-state">
+        <div v-else-if="error" class="flex flex-col justify-center items-center error-state">
+            <p>{{ t('plugins.generic.codecheck.request.failed') }}</p>
             <p>{{ error }}</p>
-            <button class="pkpButton" @click="loadData">{{ t('common.retry') }}</button>
+            <button class="pkpButton codecheck-btn pkpButton--isWarnable" @click="loadStatusData">{{ t('plugins.generic.codecheck.common.reload') }}</button>
         </div>
 
         <div v-else-if="dataLoaded">
@@ -151,7 +140,7 @@ export default {
         return this.t(this.statusData.status);
     },
     getStatusSelect() {
-        let statusSelectString = '<select id="codecheck-status-select">';
+        let statusSelectString = '<select class="codecheck-status-select">';
         this.allStatuses.forEach(element => {
             if(element === this.statusData.status) {
                 statusSelectString += '<option value="' + element + '" selected>' + this.t(element) + '</option>';
@@ -381,5 +370,78 @@ export default {
     position: -webkit-sticky;
     position: sticky;
     top: 0;
+}
+
+.modal-field table th:last-of-type,
+.modal-field table td:last-of-type {
+    text-align: right !important;
+}
+
+.codecheck-status-select {
+  font-size: 14px;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  height: 2.5rem;
+  background: #fff;
+  width: 100%;
+}
+
+.loading-state,
+.error-state {
+  padding: 6px;
+}
+
+.codecheck-btn {
+  display: inline-block;
+  padding: .4375rem .75rem;
+  border: 1px solid #007ab2;
+  border-radius: 3px;
+  line-height: 1.25rem;
+  background: #007ab2;
+  color: white;
+  text-decoration: none;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.codecheck-btn:hover:not(:disabled) {
+  background: #005a87;
+  border-color: #005a87;
+}
+
+.codecheck-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pkpButton--isPrimary {
+  background: #007ab2;
+  border-color: #007ab2;
+}
+
+.pkpButton--isWarnable {
+  background: #dc3545;
+  border-color: #dc3545;
+}
+
+.pkpButton--isWarnable:hover:not(:disabled) {
+  background: #c82333;
+  border-color: #c82333;
+}
+
+.pkpButton--close {
+  background: #c8233300;
+  border-color: #c8233300;
+  font-size: 1.3rem;
+  color: #67676773;
+}
+
+.pkpButton--close:hover:not(:disabled) {
+  background: #c8233300;
+  border-color: #c8233300;
+  color: #c82333;
 }
 </style>
