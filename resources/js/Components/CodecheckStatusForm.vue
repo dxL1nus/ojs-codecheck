@@ -312,29 +312,31 @@ export default {
         await this.updateStatus(status, user);
     },
     async updateStatus(status, user) {
-        try {
-            if (!this.submission?.id) return;
-            const submissionId = this.submission.id;
-            let apiUrl = pkp.context.apiBaseUrl + 'codecheck';
-            const response = await fetch(`${apiUrl}/status/update?submissionId=${submissionId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Csrf-Token': pkp.currentUser.csrfToken,
-                },
-                body: JSON.stringify({ status: status, userId: user.id }),
-            });
-            const data = await response.json();
+        if(this.userAllowedToAccess || user.id === -1) {
+            try {
+                if (!this.submission?.id) return;
+                const submissionId = this.submission.id;
+                let apiUrl = pkp.context.apiBaseUrl + 'codecheck';
+                const response = await fetch(`${apiUrl}/status/update?submissionId=${submissionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Csrf-Token': pkp.currentUser.csrfToken,
+                    },
+                    body: JSON.stringify({ status: status, userId: user.id }),
+                });
+                const data = await response.json();
 
-            if (data.success) {
-                console.log('Success:', data.statusRecord);
-                this.statusData = data.statusRecord;
-                this.allStatuses = data.allStatuses;
-            } else {
-                console.error('Error:', data.error);
+                if (data.success) {
+                    console.log('Success:', data.statusRecord);
+                    this.statusData = data.statusRecord;
+                    this.allStatuses = data.allStatuses;
+                } else {
+                    console.error('Error:', data.error);
+                }
+            } catch (error) {
+                console.error('Failed to update Status: ', error);
             }
-        } catch (error) {
-            console.error('Failed to update Status: ', error);
         }
     },
     async getUser(userId) {
