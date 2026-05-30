@@ -11,7 +11,7 @@
 
 <div>
 	<img
-		src="https://codecheck.org.uk/img/codecheck_logo.svg"
+		src="{$pluginUrl}/assets/img/codecheck_logo.svg"
 		alt="CODECHECK Logo"
 		height="87"
 		width="100"
@@ -27,7 +27,11 @@
 		<li>Open by default and transitional by disposition.</li>
 	</ol>
 	<p>The principles can be implemented in different <a href="https://codecheck.org.uk/process/">processes</a>, one of which is the <a href="https://codecheck.org.uk/guide/community-workflow-overview">CODECHECK community workflow</a>.</p>
-	<p>To stay in touch with the project, follow us on social media at Mastodon logo <a href="https://fediscience.org/@codecheck">https://fediscience.org/@codecheck</a>.</p>
+	<p>To stay in touch with the project, follow us on social media at:</p>
+	<ul style="list-style: none; margin: 0; padding: 0;">
+		<li><img src="{$pluginUrl}/assets/img/icon-mastodon.svg" width="10" height="10" alt="Mastodon logo" style="margin-top: -3px;"> <a href="https://fediscience.org/@codecheck">codecheck@fediscience.org</a></li>
+		<li><img src="{$pluginUrl}/assets/img/icon-linked-in.svg" width="10" height="10" alt="Linked In logo" style="margin-top: -3px;"> <a href="https://www.linkedin.com/company/codecheck/">linkedin.com/company/codecheck/</a></li>
+	</ul>
 </div>
 
 {include file="frontend/components/footer.tpl"}

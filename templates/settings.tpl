@@ -159,8 +159,7 @@
 				<label class="pkp_form_label">{translate key="plugins.generic.codecheck.settings.github.personalAccessToken"}</label>
 			</div>
 			<label class="description">
-				{translate key="plugins.generic.codecheck.settings.github.personalAccessToken.description"}
-				<a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic">https://docs.github.com/</a>
+				{translate key="plugins.generic.codecheck.settings.github.personalAccessToken.description" patGuideUrl="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic"}
 			</label>
 			<input 
 				type="password"

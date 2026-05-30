@@ -42,7 +42,10 @@ class CodecheckPageHandler extends \APP\handler\Handler
         // Assign the template vars needed and display
         $templateMgr = TemplateManager::getManager($request);
         $this->setupTemplate($request);
-        $templateMgr->assign('title', __('plugins.generic.codecheck.infoPage.title'));
+        $templateMgr->assign([
+            'title'     => __('plugins.generic.codecheck.infoPage.title'),
+            'pluginUrl' => $request->getBaseUrl() . '/' . $this->plugin->getPluginPath(),
+        ]);
         $templateMgr->display($this->plugin->getTemplateResource('pages/codecheck-info.tpl'));
     }
 }

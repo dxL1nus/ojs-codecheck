@@ -72,7 +72,7 @@ msgid "plugins.generic.codecheck.settings.github.personalAccessToken"
 msgstr "GitHub Personal Access Token (classic)"
 
 msgid "plugins.generic.codecheck.settings.github.personalAccessToken.description"
-msgstr "Provide your GitHub Personal Access Token (classic), so the CODECHECK plugin can create new GitHub issues.<br>Here is how you can create a PAT (NOTE: please select "public_repo"): "
+msgstr "Provide your GitHub Personal Access Token (classic), so the CODECHECK plugin can create new GitHub issues.<br><a href='{$patGuideUrl}'>Here</a> is how you can create a PAT (NOTE: please select "public_repo")"
 
 msgid "plugins.generic.codecheck.settings.github.registerRepository"
 msgstr "GitHub Repository used as the CODECHECK register"
