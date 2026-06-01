@@ -3,7 +3,6 @@
 namespace APP\plugins\generic\codecheck\api\v1;
 
 use APP\plugins\generic\codecheck\api\v1\JsonResponse;
-use APP\plugins\generic\codecheck\api\v1\CodecheckRoleManager;
 use APP\core\Request;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
@@ -24,17 +23,14 @@ use APP\facades\Repo;
 use \Github\Client;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
+use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
 use APP\plugins\generic\codecheck\classes\Exceptions\RoleExceptions\RoleNotFoundException;
-use APP\plugins\generic\codecheck\classes\Roles\CodecheckRole;
-use APP\plugins\generic\codecheck\classes\Roles\ReadAccessRole;
-use APP\plugins\generic\codecheck\classes\Roles\WriteAccessRole;
-use APP\plugins\generic\codecheck\classes\Roles\StandardAccessRole;
 use Illuminate\Support\Facades\DB;
 
 class CodecheckApiHandler
 {
     private JsonResponse $response;
-    private array $roles;
+    private CodecheckRoleManager $roles;
     private array $endpoints;
     private string $route;
     private CodecheckPlugin $plugin;
@@ -45,10 +41,10 @@ class CodecheckApiHandler
      * Initialize the Codecheck APIHandler class
      * 
      * @param Request $request API Request
-     * @param array<CodecheckRole> $roles The CODECHECK roles for `read`, `write` and `standard` access to the API routes
+     * @param CodecheckRoleManager $roles The CODECHECK roles for `read`, `write` and `standard` access to the API routes
      * @return void
      */
-    public function __construct(CodecheckPlugin $plugin, Request $request, array $roles)
+    public function __construct(CodecheckPlugin $plugin, Request $request, CodecheckRoleManager $roles)
     {
         $this->plugin = $plugin;
 
@@ -66,39 +62,39 @@ class CodecheckApiHandler
                 [
                     'route' => 'venue',
                     'handler' => [$this, 'getVenueData'],
-                    'role' => StandardAccessRole::class,
+                    'role' => $roles->readMetadata(),
                 ],
                 [
                     'route' => 'metadata',
                     'handler' => [$this, 'getMetadata'],
-                    'role' => ReadAccessRole::class,
+                    'role' => $roles->readMetadata(),
                 ],
                 [
                     'route' => 'download',
                     'handler' => [$this, 'downloadFile'],
-                    'roles' => ReadAccessRole::class,
+                    'roles' => $roles->readMetadata(),
                 ],
                 [
                     'route' => 'yaml',
                     'handler' => [$this, 'generateYaml'],
-                    'role' => ReadAccessRole::class,
+                    'role' => $roles->editMetadata(),
                 ],
             ],
             'POST' => [
                 [
                     'route' => 'identifier',
                     'handler' => [$this, 'reserveIdentifier'],
-                    'role' => StandardAccessRole::class,
+                    'role' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'metadata',
                     'handler' => [$this, 'saveMetadata'],
-                    'role' => WriteAccessRole::class,
+                    'role' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'upload',
                     'handler' => [$this, 'uploadFile'],
-                    'role' => WriteAccessRole::class,
+                    'role' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'repository',
@@ -134,17 +130,6 @@ class CodecheckApiHandler
         return new ApiEndpoint($this->endpoints, $this->route, $requestMethod);
     }
 
-    private function getPkpRoles(string $codecheckRole): array
-    {
-        foreach ($this->roles as $role) {
-            if($role::class === $codecheckRole) {
-                return $role->getRoles();
-            }
-        }
-
-        throw new RoleNotFoundException("The CODECHECK Role was not found in the array of roles.");
-    }
-
     /**
      * Authorize the API connection
      * 
@@ -170,7 +155,7 @@ class CodecheckApiHandler
         $codecheckRole = $apiEndpoint->getRole();
         
         try {
-            $pkpRoles = $this->getPkpRoles($codecheckRole);
+            $pkpRoles = $codecheckRole->getRoles();
 
             if(!($user && $user->hasRole($pkpRoles, $contextId))) {
                 JsonResponse::staticResponse([
@@ -212,7 +197,7 @@ class CodecheckApiHandler
         // get the request Method like POST or GET
         $requestMethod = $this->request->getRequestMethod();
 
-        CodecheckLogger::debug('Method: ' . $method);
+        CodecheckLogger::debug('Method: ' . $requestMethod);
 
         $apiEndpoint = $this->getEndpoint();
 
@@ -414,11 +399,11 @@ class CodecheckApiHandler
         $result = $this->codecheckMetadataHandler->getMetadata($this->request, $submissionId);
 
         if(isset($result['error'])) {
-            $result = array_merge($result, ['submissionID' => $submissionId]);
+            $result = array_merge($result, ['success' => false, 'submissionID' => $submissionId]);
             JsonResponse::staticResponse($result, 404);
         }
 
-        JsonResponse::staticResponse($result, 200);
+        JsonResponse::staticResponse(array_merge($result, ['success' => true]), 200);
     }
 
     /**
@@ -432,11 +417,11 @@ class CodecheckApiHandler
         $result = $this->codecheckMetadataHandler->saveMetadata($this->request, $submissionId);
 
         if(isset($result['error'])) {
-            $result = array_merge($result, ['submissionID' => $submissionId]);
+            $result = array_merge($result, ['success' => false, 'submissionID' => $submissionId]);
             JsonResponse::staticResponse($result, 404);
         }
 
-        JsonResponse::staticResponse($result, 200);
+        JsonResponse::staticResponse(array_merge($result, ['success' => true]), 200);
     }
 
     /**

@@ -19,9 +19,8 @@ use APP\plugins\generic\codecheck\api\v1\CodecheckApiHandler;
 use PKP\core\JSONMessage;
 use APP\plugins\generic\codecheck\classes\Constants;
 use APP\plugins\generic\codecheck\controllers\page\CodecheckPageHandler;
-use APP\plugins\generic\codecheck\classes\Roles\ReadAccessRole;
-use APP\plugins\generic\codecheck\classes\Roles\WriteAccessRole;
-use APP\plugins\generic\codecheck\classes\Roles\StandardAccessRole;
+use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleArray;
+use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
 
 class CodecheckPlugin extends GenericPlugin
 {
@@ -95,32 +94,16 @@ class CodecheckPlugin extends GenericPlugin
 
         if (str_contains($request->getRequestPath(), 'api/v1/codecheck')) {
             CodecheckLogger::debug('Instantiating the CODECHECK APIHandler');
-            $standardAccessRole = new StandardAccessRole([
-                Role::ROLE_ID_SITE_ADMIN,
-                Role::ROLE_ID_MANAGER,
-                Role::ROLE_ID_SUB_EDITOR,
-                Role::ROLE_ID_ASSISTANT,
-                Role::ROLE_ID_REVIEWER,
-                Role::ROLE_ID_AUTHOR
-            ]);
 
-            $readAccessRole = new ReadAccessRole([
-                Role::ROLE_ID_SITE_ADMIN,
-                Role::ROLE_ID_MANAGER,
-                Role::ROLE_ID_SUB_EDITOR,
-                Role::ROLE_ID_ASSISTANT,
-            ]);
+            $adminRoles = new CodecheckRoleArray([Role::ROLE_ID_MANAGER, Role::ROLE_ID_SITE_ADMIN]);
+            $editRoles = new CodecheckRoleArray([$adminRoles, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT, Role::ROLE_ID_MANAGER]);
+            $readRoles = new CodecheckRoleArray([$editRoles, Role::ROLE_ID_READER, Role::ROLE_ID_AUTHOR]);
 
-            $writeAccessRole = new WriteAccessRole([
-                Role::ROLE_ID_SITE_ADMIN,
-                Role::ROLE_ID_MANAGER,
-            ]);
-
-            $roles = [
-                $standardAccessRole,
-                $readAccessRole,
-                $writeAccessRole
-            ];
+            $roles = new CodecheckRoleManager(
+                readMetadata:  $readRoles,
+                editMetadata: $editRoles,
+                admin: $adminRoles,
+            );
 
             $apiHandler = new CodecheckApiHandler($this, $request, $roles);
             CodecheckLogger::debug('API request: ' . $request->getRequestPath());

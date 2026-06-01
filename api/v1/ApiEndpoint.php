@@ -2,7 +2,7 @@
 
 namespace APP\plugins\generic\codecheck\api\v1;
 
-use APP\plugins\generic\codecheck\classes\Roles\CodecheckRole;
+use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleArray;
 
 class ApiEndpoint
 {
@@ -22,7 +22,7 @@ class ApiEndpoint
         return $this->endpoint['handler'];
     }
 
-    public function getRole(): string
+    public function getRole(): CodecheckRoleArray
     {
         return $this->endpoint['role'];
     }
