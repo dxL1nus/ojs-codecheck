@@ -17,6 +17,7 @@ use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifie
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckVenue;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckYamlValidator;
+use APP\plugins\generic\codecheck\classes\Log\CodecheckLogger;
 use APP\plugins\generic\codecheck\classes\Constants;
 use APP\plugins\generic\codecheck\CodecheckPlugin;
 
@@ -177,7 +178,7 @@ class CodecheckApiHandler
         // get the request Method like POST or GET
         $method = $this->request->getRequestMethod();
 
-        error_log("Method: " . $method);
+        CodecheckLogger::debug('Method: ' . $method);
 
         foreach ($this->endpoints[$method] as $endpoint) {
             if($this->route == $endpoint['route']) {
@@ -265,7 +266,7 @@ class CodecheckApiHandler
                 $context, // The Journal Object of the Submission
             );
 
-            //error_log(print_r($this->request->getContext(), true));
+            CodecheckLogger::debug(print_r($this->request->getContext(), true));
 
             // CODECHECK Register with list of all identifiers in range
             try {
@@ -417,7 +418,7 @@ class CodecheckApiHandler
         // get submissionId
         $submissionId = $this->codecheckMetadataHandler->getSubmissionId();
 
-        error_log("[CODECHECK] Upload file for submission: $submissionId");
+        CodecheckLogger::info('Upload file for submission: ' . $submissionId);
         
         $submission = Repo::submission()->get($submissionId);
         
@@ -440,7 +441,7 @@ class CodecheckApiHandler
 
         $file = $_FILES['file'];
 
-        error_log("[CODECHECK API] File: " . $file['name']);
+        CodecheckLogger::debug('File: ' . $file['name']);
         
         // Validate file
         if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -453,7 +454,7 @@ class CodecheckApiHandler
 
         // Create directory for codecheck files
         $context = $this->request->getContext();
-        error_log("[CODECHECK API] Request Context ID: " . $context->getId());
+        CodecheckLogger::debug('Request Context ID: ' . $context->getId());
         $basePath = \PKP\core\Core::getBaseDir();
         $uploadDir = $basePath . '/files/journals/' . $context->getId() . '/codecheck/' . $submissionId;
         
@@ -482,7 +483,7 @@ class CodecheckApiHandler
             return;
         }
 
-        error_log("[CODECHECK] File saved: $filepath");
+        CodecheckLogger::info('File saved: ' . $filepath);
 
         // Return relative path for storage
         $relativePath = 'files/journals/' . $context->getId() . '/codecheck/' . $submissionId . '/' . $filename;
@@ -515,7 +516,7 @@ class CodecheckApiHandler
         $basePath = \PKP\core\Core::getBaseDir();
         $fullPath = $basePath . '/' . $filePath;
         
-        error_log("[CODECHECK] Download request: $fullPath");
+        CodecheckLogger::info('Download request: ' . $fullPath);
         
         // Security: ensure file is in codecheck directory
         if (strpos($filePath, 'codecheck') === false || !file_exists($fullPath)) {
@@ -575,7 +576,7 @@ class CodecheckApiHandler
         try {
             $yamlValidator->validateYaml();
         } catch (\Throwable $e) {
-            error_log("[CODECHECK Api Handler] YAML Parse Exception: " . $e->getMessage());
+            CodecheckLogger::error('YAML Parse Exception: ' . $e->getMessage());
 
             JsonResponse::staticResponse([
                 'success' => false,
@@ -583,7 +584,7 @@ class CodecheckApiHandler
             ], $e->getCode());
         }
 
-        error_log("[CODECHECK Api Handler] The generated YAML content is structurally valid!");
+        CodecheckLogger::info('The generated YAML content is structurally valid');
 
         JsonResponse::staticResponse([
             'success' => true,
