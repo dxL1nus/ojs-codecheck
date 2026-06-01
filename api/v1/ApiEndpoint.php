@@ -24,6 +24,6 @@ class ApiEndpoint
 
     public function getRole(): CodecheckRoleArray
     {
-        return $this->endpoint['role'];
+        return $this->endpoint['roles'];
     }
 }

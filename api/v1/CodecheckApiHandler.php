@@ -77,7 +77,7 @@ class CodecheckApiHandler
                 [
                     'route' => 'yaml',
                     'handler' => [$this, 'generateYaml'],
-                    'role' => $roles->editMetadata(),
+                    'roles' => $roles->readMetadata(),
                 ],
             ],
             'POST' => [
@@ -99,12 +99,12 @@ class CodecheckApiHandler
                 [
                     'route' => 'repository',
                     'handler' => [$this, 'loadMetadataFromRepository'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'yaml/validate',
                     'handler' => [$this, 'validateYamlStructure'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->readMetadata(),
                 ],
             ],
         ];
@@ -570,11 +570,11 @@ class CodecheckApiHandler
         $result = $this->codecheckMetadataHandler->generateYaml($this->request, $submissionId);
 
         if(isset($result['error'])) {
-            $result = array_merge($result, ['submissionID' => $submissionId]);
+            $result = array_merge($result, ['success' => false, 'submissionID' => $submissionId]);
             JsonResponse::staticResponse($result, 404);
         }
 
-        JsonResponse::staticResponse($result, 200);
+        JsonResponse::staticResponse(array_merge($result, ['success' => true]), 200);
     }
 
     /**
