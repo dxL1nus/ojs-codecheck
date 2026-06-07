@@ -22,7 +22,7 @@ class ApiEndpoint
         return $this->endpoint['handler'];
     }
 
-    public function getRole(): CodecheckRoleArray
+    public function getRoles(): CodecheckRoleArray
     {
         return $this->endpoint['roles'];
     }

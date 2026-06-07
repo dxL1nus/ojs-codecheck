@@ -21,11 +21,8 @@ use APP\plugins\generic\codecheck\CodecheckPlugin;
 
 use APP\facades\Repo;
 use \Github\Client;
-use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
-use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
 use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
 use APP\plugins\generic\codecheck\classes\Exceptions\RoleExceptions\RoleNotFoundException;
-use Illuminate\Support\Facades\DB;
 
 class CodecheckApiHandler
 {
@@ -62,12 +59,12 @@ class CodecheckApiHandler
                 [
                     'route' => 'venue',
                     'handler' => [$this, 'getVenueData'],
-                    'role' => $roles->readMetadata(),
+                    'roles' => $roles->readMetadata(),
                 ],
                 [
                     'route' => 'metadata',
                     'handler' => [$this, 'getMetadata'],
-                    'role' => $roles->readMetadata(),
+                    'roles' => $roles->readMetadata(),
                 ],
                 [
                     'route' => 'download',
@@ -84,17 +81,17 @@ class CodecheckApiHandler
                 [
                     'route' => 'identifier',
                     'handler' => [$this, 'reserveIdentifier'],
-                    'role' => $roles->editMetadata(),
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'metadata',
                     'handler' => [$this, 'saveMetadata'],
-                    'role' => $roles->editMetadata(),
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'upload',
                     'handler' => [$this, 'uploadFile'],
-                    'role' => $roles->editMetadata(),
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'repository',
@@ -152,7 +149,7 @@ class CodecheckApiHandler
         $user = $this->request->getUser() ?? null;
         $contextId = $this->request->getContext()->getId();
         $apiEndpoint = $this->getEndpoint();
-        $codecheckRole = $apiEndpoint->getRole();
+        $codecheckRole = $apiEndpoint->getRoles();
         
         try {
             $pkpRoles = $codecheckRole->getRoles();
