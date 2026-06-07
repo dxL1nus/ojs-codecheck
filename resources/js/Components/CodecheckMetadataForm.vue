@@ -293,6 +293,15 @@
                     :readonly="this.certificateIdentifier.issueUrl.trim() !== '' && !this.identifierInputEmpty"
                     class="certificate-identifier-input"
                 />
+                <div class="certificate-identifier-select dropdown">
+                  <button class="dropbtn">{{ t('plugins.generic.codecheck.identifier.labels') }} ⚙</button>
+                  <div class="dropdown-content">
+                    <div class="dropdown-checkbox-input" v-for="label in certificateIdentifier.labels" :key="label">   
+                      <input type="checkbox" v-model="certificateIdentifier.labelSelected" :value="label"/>
+                      <label :for="label">{{ label }}</label>
+                    </div>
+                  </div>
+                </div>
                 <select
                     v-model="certificateIdentifier.venueType"
                     class="certificate-identifier-select certificate-identifier-venue-types"
@@ -432,6 +441,8 @@ export default {
         issueNumber: null,
         isReserved: false,
         isLinked: false,
+        labels: ['test 1', 'label 2', 'venue name 3'],
+        labelSelected: [],
       },
       metadata: {
         version: 'latest',
@@ -1118,6 +1129,8 @@ export default {
             if (data.success) {
               this.certificateIdentifier.issueUrl = data.issueUrl;
               this.certificateIdentifier.issueNumber = data.issueNumber;
+              this.certificateIdentifier.venueName = 'default';
+              this.certificateIdentifier.venueType = 'default';
               this.certificateIdentifier.isLinked = true;
               this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.linkExistingIdentifier.success.message')}: ${data.identifier}`, 'success');
               console.log('The GitHub Issue was linked to OJS with the Certificate Identifier: ', data.identifier, data.issueUrl, data.issueNumber);
@@ -1929,12 +1942,70 @@ a {
 }
 
 .certificate-identifier-select {
+    font-size: 14px;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    height: 2.5rem;
+    background: #fff;
+}
+
+/* GitHub Labels Dropdown*/
+.certificate-identifier-select.dropdown {
+  float: right;
+  overflow: hidden;
+  color: inherit;
+  padding: 0 !important;
+}
+
+.certificate-identifier-select.dropdown .dropbtn {
   font-size: 14px;
-  padding: 6px;
+  padding-left: 6px;
+  padding-right: 6px;
+  padding-bottom: 0;
+  padding-top: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+}
+
+.certificate-identifier-select.dropdown:hover .dropbtn {
+  background-color: #eee;
+}
+
+.certificate-identifier-select .dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #fff;
+  border-radius: 8px;
   border: 1px solid #ccc;
-  border-radius: 3px;
-  height: 2.5rem;
-  background: #fff;
+  min-width: 160px;
+  z-index: 1;
+  padding: 10px;
+}
+
+.certificate-identifier-select .dropdown-content .dropdown-checkbox-input {
+  float: none;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+  outline: none;
+  border: none;
+  width: 100%;
+  padding: 0;
+}
+
+.certificate-identifier-select.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.certificate-identifier-select.dropdown .dropdown-content label {
+  font-style: italic;
+  margin-left: 5px;
+  color: inherit;
 }
 
 #certificate-identifier-button-wrapper {
