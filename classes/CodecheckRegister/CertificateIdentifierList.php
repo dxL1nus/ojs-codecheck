@@ -72,13 +72,11 @@ class CertificateIdentifierList
         try {
             $codecheckGithubRegisterApiClient->fetchIssueByIdentifier($certificateIdentifier);
         } catch (ApiFetchException $ae) {
+            CodecheckLogger::error($ae->getMessage());
             throw $ae;
-            error_log($ae);
-            return $newCertificateIdentifierList;
         } catch (NoMatchingIssuesFoundException $me) {
+            CodecheckLogger::error($me->getMessage());
             throw $me;
-            error_log($me);
-            return $newCertificateIdentifierList;
         }
 
         return CertificateIdentifierList::createNewCertificateIdentifierList(

@@ -240,6 +240,11 @@ class CodecheckApiHandler
             }
         }
 
+        // add the github custom labels specified in the plugin settings form to the Label Array returned back to the user
+        $context = $this->request->getContext();
+        $githubCustomLabels = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_CUSTOM_LABELS);
+        $codecheckIssueLabels->addLabelArray($githubCustomLabels);
+
         // Serve the getCodecheckIssueLabels API route
         JsonResponse::staticResponse([
             'success' => true,
@@ -253,6 +258,7 @@ class CodecheckApiHandler
         $submissionData = $postParams["submission"];
         $authorString = $submissionData["authorString"];
 
+        $context = $this->request->getContext();
         $isAuthorStringEnabled = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_AUTHOR_ANONYMITY);
 
         // if Authors should be Anonymous/ if no Author string was given, set it to null
@@ -271,19 +277,20 @@ class CodecheckApiHandler
     private function getIssueLabelsLastUpdated(): string
     {
         if (!Schema::hasTable('codecheck_issue_labels')) {
-            error_log("[CODECHECK API] The Issue Label table doesn't exist");
+            // TODO: implement what happens when the table doesn't exist
+            CodecheckLogger::error("CODECHECK API: The Issue Label table doesn't exist");
         }
 
         $labelsLastUpdated = DB::table('codecheck_issue_labels')
             ->select(['labels_last_updated'])
             ->first();
 
-        error_log("Labels: " . print_r(DB::table('codecheck_issue_labels')->select(['*'])->get()->toArray(), true));
+        CodecheckLogger::debug("Labels: " . print_r(DB::table('codecheck_issue_labels')->select(['*'])->get()->toArray(), true));
 
         // If Labels weren't updated yet, set last updated to earliest date possible, so they will definitely get updated
         $labelsLastUpdated = $labelsLastUpdated->labels_last_updated ?? date('Y-m-d H:i:s', 0);
 
-        error_log("[CODECHECK API] Codecheck Issues Last Updated: " . json_encode($labelsLastUpdated));
+        CodecheckLogger::debug("CODECHECK API: Codecheck Issues Last Updated: " . json_encode($labelsLastUpdated));
         
         return $labelsLastUpdated;
     }
@@ -379,6 +386,8 @@ class CodecheckApiHandler
                 
                 case 'newIssueUrl':
                     $issueGithubUrl = $this->reserveIdentifierWithNewIssueUrl(
+                        $githubRegisterOrganization,
+                        $githubRegisterRepository,
                         $newIdentifier,
                         $codecheckIssueLabels,
                         $articleTitle,
@@ -523,6 +532,8 @@ class CodecheckApiHandler
      * @return string
      */
     private function reserveIdentifierWithNewIssueUrl(
+        string $githubRegisterOrganization,
+        string $githubRegisterRepository,
         CertificateIdentifier $identifier,
         CodecheckIssueLabels $issueLabels,
         string $articleTitle,
@@ -534,8 +545,8 @@ class CodecheckApiHandler
         $journalName = $this->request->getContext()?->getLocalizedName() ?? 'Unknwon Journal';
 
         $codecheckIssue = new CodecheckGithubRegisterIssue(
-            'codecheckers',
-            'testing-dev-register',
+            $githubRegisterOrganization,
+            $githubRegisterRepository,
             $identifier,
             $issueLabels,
             $articleTitle,
@@ -565,7 +576,6 @@ class CodecheckApiHandler
         }
         $identifier = CertificateIdentifier::fromStr($rawIdentifier);
         $issue = $certificateIdentifierList->getIssueInformationByIdentifier($identifier);
-        error_log(print_r($issue, true));
         if(is_string($issue['issueUrl']) && is_int($issue['issueNumber'])) {
             JsonResponse::staticResponse([
                 'success' => true,

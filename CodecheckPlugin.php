@@ -21,6 +21,7 @@ use APP\plugins\generic\codecheck\classes\Constants;
 use APP\plugins\generic\codecheck\controllers\page\CodecheckPageHandler;
 use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleArray;
 use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
+use APP\core\Request;
 
 class CodecheckPlugin extends GenericPlugin
 {
@@ -408,7 +409,7 @@ class CodecheckPlugin extends GenericPlugin
 
     public function setEnabled($enabled, $contextId = null)
     {
-        error_log("[CODECHECK Plugin] Plugin Enabled!");
+        CodecheckLogger::debug("Plugin Enabled!");
         $result = parent::setEnabled($enabled, $contextId);
         
         if ($enabled) {
