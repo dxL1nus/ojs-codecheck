@@ -68,7 +68,7 @@ class CodecheckIssueLabels
             ->pluck('label')
             ->toArray();
 
-        error_log("[CODECHECK Issue Labels] Records: " . json_encode($issueLabelRecords));
+        CodecheckLogger::debug("Issue Label Records: " . json_encode($issueLabelRecords));
 
         $codecheckIssueLabels = new CodecheckIssueLabels($issueLabelRecords ?? []);
         return $codecheckIssueLabels;
@@ -81,14 +81,14 @@ class CodecheckIssueLabels
      */
     public function saveIssueLabelsToDB(): bool
     {   
-        error_log("[CODECHECK Issue Labels] Saving Issue Label data to DB: " . print_r($this->uniqueArray->toArray(), true));
+        CodecheckLogger::debug("Saving Issue Label data to DB: " . print_r($this->uniqueArray->toArray(), true));
 
         $tableName = 'codecheck_issue_labels';
 
         $tableExists = Schema::hasTable('codecheck_issue_labels');
 
         if(!$tableExists) {
-            error_log("Issue Label Table doesnt exist");
+            CodecheckLogger::debug("Issue Label Table doesnt exist");
             return !$tableExists;
         }
 
@@ -109,17 +109,27 @@ class CodecheckIssueLabels
                     DB::table($tableName)
                         ->where('label', $label)
                         ->update($dbLabelRecord);
-                    error_log("[CODECHECK Issue Labels] Updated existing label record");
+                    CodecheckLogger::debug("Updated existing label record");
                 } else {
                     DB::table($tableName)->insert($dbLabelRecord);
-                    error_log("[CODECHECK Issue Labels] Created new label record");
+                    CodecheckLogger::debug("Created new label record");
                 }
             }
         }
 
-        error_log("Labels: " . print_r(DB::table('codecheck_issue_labels')->select(['*'])->get()->toArray(), true));
-
         return true;
+    }
+
+    public function add(string $issue): void
+    {
+        $this->uniqueArray->add($issue);
+    }
+
+    public function addLabelArray(array $labels): void
+    {
+        foreach ($labels as $label) {
+            $this->uniqueArray->add($label);
+        }
     }
 
     /**

@@ -108,7 +108,6 @@ class CodecheckGithubRegisterIssue {
     ): array
     {
         $labels = ['id assigned'];
-        error_log("Labels: ". print_r($codecheckIssueLabels->get()->toArray(), true));
         $labels = array_merge($labels, $codecheckIssueLabels->get()->toArray());
 
         return $labels;
