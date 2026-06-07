@@ -39,6 +39,7 @@
   "plugins.generic.codecheck.identifier.customLabels",
   "plugins.generic.codecheck.identifier.description",
   "plugins.generic.codecheck.identifier.label",
+  "plugins.generic.codecheck.identifier.labels",
   "plugins.generic.codecheck.identifier.remove",
   "plugins.generic.codecheck.identifier.remove.modal.areYouSureYouWantToRemoveTheIdentifier",
   "plugins.generic.codecheck.identifier.remove.modal.title",
