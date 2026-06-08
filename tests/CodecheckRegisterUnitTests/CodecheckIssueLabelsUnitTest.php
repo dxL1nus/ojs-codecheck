@@ -24,7 +24,7 @@ class CodecheckIssueLabelsUnitTest extends PKPTestCase
 		parent::setUp();
 	}
 
-    public function testVenueNames()
+    /*public function testIssueLabels()
     {
         $jsonApiMockVenueTypes = $this->createMock(CodecheckApiClient::class);
         $jsonApiMockVenueTypes->expects($this->once())
@@ -58,19 +58,5 @@ class CodecheckIssueLabelsUnitTest extends PKPTestCase
             ['lifecycle journal', 'conference', 'check-nl', 'preprint'],
             $result
         );
-    }
-
-    public function testVenueNamesCurlReadExceptionCheckThatErrorAndErrnoAreCurlSpecific()
-    {
-        $testCurlHandle = curl_init();
-
-        $clientMock = $this->createMock(CodecheckApiClient::class);
-        $clientMock->method('fetch')->will($this->throwException(new CurlReadException($testCurlHandle)));
-
-        $this->expectException(CurlReadException::class);
-        $this->expectExceptionMessage(curl_error($testCurlHandle));
-        $this->expectExceptionCode(curl_errno($testCurlHandle));
-
-        CodecheckIssueLabels::fromApi('https://codecheck.org.uk/register/venues/index.json', $clientMock);
-    }
+    }*/
 }

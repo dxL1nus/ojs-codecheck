@@ -137,6 +137,10 @@ class CodecheckGithubRegisterApiClientUnitTest extends PKPTestCase
     {
         $_ENV['CODECHECK_REGISTER_GITHUB_TOKEN'] = $this->githubPAT;
 
+        $codecheckers = ['Example Codechecker'];
+        $repos = ['https://repo.com'];
+        $paperTitle = 'Some Paper';
+        $authorString = 'Daniel Nüst et al.';
 
         $certMock = $this->createMock(CertificateIdentifier::class);
         $certMock->method('toStr')
@@ -152,16 +156,16 @@ class CodecheckGithubRegisterApiClientUnitTest extends PKPTestCase
         $issueLabelsMock->method('get')->willReturn($collectionMock);
 
         $issue = new CodecheckGithubRegisterIssue(
-            $this->githubRegisterRepositoryOwner,
+            $this->githubRegisterOrganization,
             $this->githubRegisterRepository,
             $certMock,
             $issueLabelsMock,
-            'Some Paper',
+            $paperTitle,
             $this->journalName,
-            'Daniel Nüst et al.',
-            123,
-            ['Example Codechecker'],
-            ['https://repo.com']
+            $authorString,
+            $this->submissionId,
+            $codecheckers,
+            $repos
         );
 
         $expectedBody = $issue->getBody();
@@ -169,7 +173,7 @@ class CodecheckGithubRegisterApiClientUnitTest extends PKPTestCase
         $issueApiMock->expects($this->once())
             ->method('create')
             ->with(
-                $this->githubRegisterRepositoryOwner,
+                $this->githubRegisterOrganization,
                 $this->githubRegisterRepository,
                 [
                     'title'  => 'Daniel Nüst et al. | 2025-001',
@@ -195,12 +199,15 @@ class CodecheckGithubRegisterApiClientUnitTest extends PKPTestCase
             $clientMock
         );
 
+        $labels = new CodecheckIssueLabels(['institution', 'check-nl']);
+
         $issue = $parser->addIssue(
             $certMock,
-            'institution',
-            'check-nl',
-            [],
-            'Daniel Nüst et al.'
+            $labels,
+            $paperTitle,
+            $authorString,
+            $codecheckers,
+            $repos
         );
 
         $this->assertEquals(
