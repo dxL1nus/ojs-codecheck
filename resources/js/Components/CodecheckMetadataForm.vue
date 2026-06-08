@@ -532,6 +532,8 @@ export default {
           throw new Error(`[HTTP ${response.status}] ${data.error}`);
         }
         
+        console.log(data)
+
         this.submissionData = {
           id: data.submission?.id || submissionId,
           title: data.submission?.title || '',
@@ -564,7 +566,7 @@ export default {
           this.certificateIdentifier.issue.url = data.codecheck.issue.url;
           this.certificateIdentifier.issue.number = data.codecheck.issue.number;
           this.certificateIdentifier.issue.labelsSelected = data.codecheck.issue.labelsSelected;
-          this.certificateIdentifier.isLinked = true ? data.codecheck.issue.url && data.codecheck.issue.number : false;
+          this.certificateIdentifier.isLinked = !!(data.codecheck.issue?.url && data.codecheck.issue?.number);
           
           if (data.codecheck.repository) {
             this.repositories = data.codecheck.repository.split(',').map(r => r.trim()).filter(r => r);
@@ -1031,7 +1033,7 @@ export default {
           }
       } catch (error) {
           console.error(`${this.t('plugins.generic.codecheck.identifier.venue.fetch.error.codecheckAPI')}:`, error);
-          this.showMessage(`${this.t('plugins.generic.codecheck.identifier.venue.fetch.error.codecheckAPI')}\n${data.error}`, 'error');
+          this.showMessage(`${this.t('plugins.generic.codecheck.identifier.venue.fetch.error.codecheckAPI')}\n${error.message}`, 'error');
       }
     },
 
