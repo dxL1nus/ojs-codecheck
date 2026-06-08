@@ -2,10 +2,8 @@
 
 namespace APP\plugins\generic\codecheck\api\v1;
 
-use PKP\security\Role;
 use APP\plugins\generic\codecheck\api\v1\JsonResponse;
 use APP\core\Request;
-
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
@@ -23,14 +21,13 @@ use APP\plugins\generic\codecheck\CodecheckPlugin;
 
 use APP\facades\Repo;
 use \Github\Client;
-use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
-use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
-use Illuminate\Support\Facades\DB;
+use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
+use APP\plugins\generic\codecheck\classes\Exceptions\RoleExceptions\RoleNotFoundException;
 
 class CodecheckApiHandler
 {
     private JsonResponse $response;
-    private array $roles;
+    private CodecheckRoleManager $roles;
     private array $endpoints;
     private string $route;
     private CodecheckPlugin $plugin;
@@ -41,9 +38,10 @@ class CodecheckApiHandler
      * Initialize the Codecheck APIHandler class
      * 
      * @param Request $request API Request
+     * @param CodecheckRoleManager $roles The CODECHECK roles for `read`, `write` and `standard` access to the API routes
      * @return void
      */
-    public function __construct(CodecheckPlugin $plugin, Request $request)
+    public function __construct(CodecheckPlugin $plugin, Request $request, CodecheckRoleManager $roles)
     {
         $this->plugin = $plugin;
 
@@ -54,73 +52,79 @@ class CodecheckApiHandler
 
         $this->codecheckMetadataHandler = new CodecheckMetadataHandler($request, new Client(), new CurlApiClient());
 
-        $this->roles = [
-            Role::ROLE_ID_MANAGER,
-            Role::ROLE_ID_SUB_EDITOR,
-            Role::ROLE_ID_ASSISTANT,
-            Role::ROLE_ID_AUTHOR
-        ];
+        $this->roles = $roles;
 
         $this->endpoints = [
             'GET' => [
                 [
                     'route' => 'venue',
                     'handler' => [$this, 'getVenueData'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->readMetadata(),
                 ],
                 [
                     'route' => 'metadata',
                     'handler' => [$this, 'getMetadata'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->readMetadata(),
                 ],
                 [
                     'route' => 'download',
                     'handler' => [$this, 'downloadFile'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->readMetadata(),
                 ],
                 [
                     'route' => 'yaml',
                     'handler' => [$this, 'generateYaml'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->readMetadata(),
                 ],
             ],
             'POST' => [
                 [
                     'route' => 'identifier',
                     'handler' => [$this, 'reserveIdentifier'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'metadata',
                     'handler' => [$this, 'saveMetadata'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'upload',
                     'handler' => [$this, 'uploadFile'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'repository',
                     'handler' => [$this, 'loadMetadataFromRepository'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'yaml/validate',
                     'handler' => [$this, 'validateYamlStructure'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->readMetadata(),
                 ],
             ],
         ];
 
         $this->request = $request;
 
-        $this->authorize();
-
         // Get the API Route that was called from the request
         $this->route = $this->getRouteFromRequest();
+
+        $this->authorize();
+
         // Serve the Request
         $this->serveRequest();
+    }
+
+    private function getEndpoint(): ApiEndpoint
+    {
+        // get the request Method like POST or GET
+        $requestMethod = $this->request->getRequestMethod();
+
+        error_log("Method: " . $requestMethod);
+
+        return new ApiEndpoint($this->endpoints, $this->route, $requestMethod);
     }
 
     /**
@@ -144,12 +148,24 @@ class CodecheckApiHandler
         // Check if the user that accesses this resource has at least one valid Role and if user exists
         $user = $this->request->getUser() ?? null;
         $contextId = $this->request->getContext()->getId();
+        $apiEndpoint = $this->getEndpoint();
+        $codecheckRole = $apiEndpoint->getRoles();
+        
+        try {
+            $pkpRoles = $codecheckRole->getRoles();
 
-        if(!($user && $user->hasRole($this->roles, $contextId))) {
+            if(!($user && $user->hasRole($pkpRoles, $contextId))) {
+                JsonResponse::staticResponse([
+                    'success'   => false,
+                    'error'     => "User has no assigned Role or doesn't have the right roles assigned to access this resource"
+                ], 400);
+                return;
+            }
+        } catch (RoleNotFoundException $roleNotFoundException) {
             JsonResponse::staticResponse([
                 'success'   => false,
-                'error'     => "User has no assigned Role or doesn't have the right roles assigned to access this resource"
-            ], 400);
+                'error'     => $roleNotFoundException->getMessage()
+            ], $roleNotFoundException->getCode());
             return;
         }
     }
@@ -176,16 +192,13 @@ class CodecheckApiHandler
     private function serveRequest(): void
     {
         // get the request Method like POST or GET
-        $method = $this->request->getRequestMethod();
+        $requestMethod = $this->request->getRequestMethod();
 
-        CodecheckLogger::debug('Method: ' . $method);
+        CodecheckLogger::debug('Method: ' . $requestMethod);
 
-        foreach ($this->endpoints[$method] as $endpoint) {
-            if($this->route == $endpoint['route']) {
-                call_user_func($endpoint['handler']);
-                return;
-            }
-        }
+        $apiEndpoint = $this->getEndpoint();
+
+        call_user_func($apiEndpoint->getHandler());
     }
 
     /**
@@ -383,11 +396,11 @@ class CodecheckApiHandler
         $result = $this->codecheckMetadataHandler->getMetadata($this->request, $submissionId);
 
         if(isset($result['error'])) {
-            $result = array_merge($result, ['submissionID' => $submissionId]);
+            $result = array_merge($result, ['success' => false, 'submissionID' => $submissionId]);
             JsonResponse::staticResponse($result, 404);
         }
 
-        JsonResponse::staticResponse($result, 200);
+        JsonResponse::staticResponse(array_merge($result, ['success' => true]), 200);
     }
 
     /**
@@ -401,11 +414,11 @@ class CodecheckApiHandler
         $result = $this->codecheckMetadataHandler->saveMetadata($this->request, $submissionId);
 
         if(isset($result['error'])) {
-            $result = array_merge($result, ['submissionID' => $submissionId]);
+            $result = array_merge($result, ['success' => false, 'submissionID' => $submissionId]);
             JsonResponse::staticResponse($result, 404);
         }
 
-        JsonResponse::staticResponse($result, 200);
+        JsonResponse::staticResponse(array_merge($result, ['success' => true]), 200);
     }
 
     /**
@@ -554,11 +567,11 @@ class CodecheckApiHandler
         $result = $this->codecheckMetadataHandler->generateYaml($this->request, $submissionId);
 
         if(isset($result['error'])) {
-            $result = array_merge($result, ['submissionID' => $submissionId]);
+            $result = array_merge($result, ['success' => false, 'submissionID' => $submissionId]);
             JsonResponse::staticResponse($result, 404);
         }
 
-        JsonResponse::staticResponse($result, 200);
+        JsonResponse::staticResponse(array_merge($result, ['success' => true]), 200);
     }
 
     /**
