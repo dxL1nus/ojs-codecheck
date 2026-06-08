@@ -43,7 +43,7 @@ ${t}`,"error"),!1}},showMessage(c,t){this.saveMessage=c,this.saveMessageType=t,s
               <div>${n.dataAvailabilityStatement}</div>
             </div>
           </div>
-        `),l||(d.innerHTML=`
+        `),r||(a.innerHTML=`
           <div class="submissionWizard__reviewPanel__item">
             <p class="description" style="color: #d00a0a;">
               <em>${this.escapeHtml(h("plugins.generic.codecheck.noDataFound"))}</em>

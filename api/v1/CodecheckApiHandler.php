@@ -89,7 +89,7 @@ class CodecheckApiHandler
                 [
                     'route' => 'issue',
                     'handler' => [$this, 'updateGithubIssue'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'metadata',
@@ -130,7 +130,7 @@ class CodecheckApiHandler
         // get the request Method like POST or GET
         $requestMethod = $this->request->getRequestMethod();
 
-        error_log("Method: " . $requestMethod);
+        CodecheckLogger::debug("API Method: " . $requestMethod);
 
         return new ApiEndpoint($this->endpoints, $this->route, $requestMethod);
     }
@@ -337,7 +337,17 @@ class CodecheckApiHandler
 
         // CODECHECK Register with list of all identifiers in range
         try {
-            $certificateIdentifierList = CertificateIdentifierList::fromApi($codecheckGithubRegisterApiClient);
+            if($reserveIdentifierMode == 'linkExistingIdentifier') {
+                $identifierStr = $postParams["identifier"];
+                $certificateIdentifierList = CertificateIdentifierList::fromApiWithIdentifier(
+                    $codecheckGithubRegisterApiClient,
+                    CertificateIdentifier::fromStr($identifierStr)
+                );
+            }
+            $certificateIdentifierList = CertificateIdentifierList::fromApi(
+                $codecheckGithubRegisterApiClient,
+                true
+            );
         } catch (ApiFetchException $ae) {
             JsonResponse::staticResponse([
                 'success'   => false,

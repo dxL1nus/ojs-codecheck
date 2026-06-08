@@ -818,7 +818,7 @@ export default {
       try {
         this.updateGithubIssueContents();
       } catch {
-        // show some error message
+        // TODO: show some error message
       }
 
       console.log(this.certificateIdentifier.issue.labelsSelected);
