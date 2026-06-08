@@ -166,7 +166,7 @@ class CodecheckGithubRegisterApiClient
         }
 
         // stop if no issues exist and we haven't yet found any matching issue
-        if (empty($allissues) && empty($this->issues)) {d
+        if (empty($allissues) && empty($this->issues)) {
             throw new NoMatchingIssuesFoundException("There was no open or closed issue found with the label 'id assigned' in the GitHub Codecheck Register.");
         }
     }
@@ -260,7 +260,7 @@ class CodecheckGithubRegisterApiClient
         $this->client->authenticate($token, null, Client::AUTH_ACCESS_TOKEN);
 
         $codecheckIssue = new CodecheckGithubRegisterIssue(
-            $this->githubRegisterRepositoryOwner,
+            $this->githubRegisterOrganization,
             $this->githubRegisterRepository,
             $certificateIdentifier,
             $codecheckIssueLabels,
@@ -283,7 +283,7 @@ class CodecheckGithubRegisterApiClient
 
         try {
             $issue = $this->client->api('issue')->update(
-                $this->githubRegisterRepositoryOwner,
+                $this->githubRegisterOrganization,
                 $this->githubRegisterRepository,
                 $issueNumber,
                 $issueContents,
