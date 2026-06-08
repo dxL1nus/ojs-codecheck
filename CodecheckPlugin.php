@@ -412,8 +412,9 @@ class CodecheckPlugin extends GenericPlugin
         $result = parent::setEnabled($enabled, $contextId);
         
         if ($enabled) {
-            $this->migration = new CodecheckSchemaMigration();
-            $this->migration->up();
+            $migration = new CodecheckSchemaMigration();
+            $migration->up();
+            $migration->issueLabelsUp();
         }
         
         return $result;
@@ -424,6 +425,8 @@ class CodecheckPlugin extends GenericPlugin
         $this->migration = new CodecheckSchemaMigration();
         $this->migration->down();
         $this->migration->up();
+        $this->migration->issueLabelsDown();
+        $this->migration->issueLabelsUp();
     }
 }
 
