@@ -24,6 +24,15 @@ class CodecheckIssueLabelsUnitTest extends PKPTestCase
 		parent::setUp();
 	}
 
+    public function testAddLabels()
+    {
+        $labels = ["l1", "l2"];
+        $codecheckIssueLabels = new CodecheckIssueLabels($labels);
+        $codecheckIssueLabels->add("l3");
+        $codecheckIssueLabels->addLabelArray(["l4", "l5"]);
+        $this->assertCount(5, $codecheckIssueLabels->get()->toArray());
+    }
+
     /*public function testIssueLabels()
     {
         $jsonApiMockVenueTypes = $this->createMock(CodecheckApiClient::class);
