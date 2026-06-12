@@ -300,7 +300,7 @@ describe('CodecheckMetadataForm Component', () => {
       .should('have.value', testDateTime);
   });
 
-  it('loads venue data for certificate identifier', () => {
+  it('loads labels for certificate identifier', () => {
     cy.mount(CodecheckMetadataForm, {
       props: {
         submission: { id: 1 },
@@ -359,7 +359,7 @@ describe('CodecheckMetadataForm Component', () => {
 
     cy.wait('@reserveIdentifier').then((interception) => {
       expect(interception.request.body).to.have.property('reserveIdentifierMode', 'api');
-      expect(interception.request.body.labels).to.have.length.gt(0);
+      expect(interception.request.body.issue.labelsSelected).to.have.length.gt(0);
     });
 
     cy.get('.certificate-identifier-input')
