@@ -1037,7 +1037,7 @@ export default {
               },
               body: JSON.stringify({
                 reserveIdentifierMode: reserveIdentifierMode,
-                labels: this.certificateIdentifier.issue.labelsSelected,
+                issue: this.certificateIdentifier.issue,
                 submission: {
                   authorString: authorString,
                   codeRepository: this.submissionData.codeRepository,

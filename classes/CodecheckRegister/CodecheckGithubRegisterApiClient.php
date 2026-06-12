@@ -231,7 +231,7 @@ class CodecheckGithubRegisterApiClient
                 ]
             );
         } catch (\Throwable $e) {
-            throw new ApiCreateException("Error while adding the new GitHub issue with the new Certificate Identifier: " . $certificateIdentifier->toStr() . "\n" . $e->getMessage());
+            throw new ApiCreateException("Error while adding the new GitHub issue with the new Certificate Identifier: " . $certificateIdentifier->toStr() . "\n" . $e->getMessage(), $e->getCode());
         }
 
         return $issue;
@@ -290,7 +290,7 @@ class CodecheckGithubRegisterApiClient
                 $issueContents,
             );
         } catch (\Throwable $e) {
-            throw new ApiUpdateException("Error while updating GitHub issue #$issueNumber with the Certificate Identifier: " . $certificateIdentifier->toStr() . "\n" . $e->getMessage());
+            throw new ApiUpdateException("Error while updating GitHub issue #$issueNumber with the Certificate Identifier: " . $certificateIdentifier->toStr() . "\n" . $e->getMessage(), $e->getCode());
         }
 
         return $issue;

@@ -4,23 +4,23 @@ namespace APP\plugins\generic\codecheck\classes\CodecheckRegister;
 
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
-use APP\plugins\generic\codecheck\classes\DataStructures\UniqueArray;
+use APP\plugins\generic\codecheck\classes\DataStructures\UniqueIdentifierArray;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterApiClient;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifier;
 use APP\plugins\generic\codecheck\classes\Log\CodecheckLogger;
 
 class CertificateIdentifierList
 {
-    private UniqueArray $uniqueArray;
+    private UniqueIdentifierArray $uniqueIdentifierArray;
 
     /**
-     * This initializes a new Certificate Identifier List with a new `UniqueArray`
+     * This initializes a new Certificate Identifier List with a new `uniqueIdentifierArray`
      * 
      * @return void
      */
     function __construct()
     {
-        $this->uniqueArray = new UniqueArray();   
+        $this->uniqueIdentifierArray = new UniqueIdentifierArray();   
     }
 
     /**
@@ -42,12 +42,9 @@ class CertificateIdentifierList
             } else {
                 $codecheckGithubRegisterApiClient->fetchAllIssues();
             }
-        } catch (ApiFetchException $ae) {
-            CodecheckLogger::error($ae->getMessage());
-            throw $ae;
-        } catch (NoMatchingIssuesFoundException $me) {
-            CodecheckLogger::error($me->getMessage());
-            throw $me;
+        } catch (\Throwable $e) {
+            CodecheckLogger::error($e->getCode() . ": " . $e->getMessage());
+            throw $e;
         }
 
         return CertificateIdentifierList::createNewCertificateIdentifierList(
@@ -71,12 +68,9 @@ class CertificateIdentifierList
         // fetch API
         try {
             $codecheckGithubRegisterApiClient->fetchIssueByIdentifier($certificateIdentifier);
-        } catch (ApiFetchException $ae) {
-            CodecheckLogger::error($ae->getMessage());
-            throw $ae;
-        } catch (NoMatchingIssuesFoundException $me) {
-            CodecheckLogger::error($me->getMessage());
-            throw $me;
+        } catch (\Throwable $e) {
+            CodecheckLogger::error($e->getCode() . ": " . $e->getMessage());
+            throw $e;
         }
 
         return CertificateIdentifierList::createNewCertificateIdentifierList(
@@ -181,11 +175,7 @@ class CertificateIdentifierList
         }
 
         // append to all certificate identifiers
-        foreach ($idRange as $identifier) {
-            if (!$this->uniqueArray->containsIdentifier($identifier)) {
-                $this->uniqueArray->add($identifier);
-            }
-        }
+        $this->uniqueIdentifierArray->addArray($idRange);
     }
 
     /**
@@ -193,7 +183,7 @@ class CertificateIdentifierList
      */
     public function sortAsc(): void
     {
-        $this->uniqueArray->sort(function($a, $b) {
+        $this->uniqueIdentifierArray->sort(function($a, $b) {
             // First, compare year
             if ($a['identifier']->getYear() !== $b['identifier']->getYear()) {
                 return $a['identifier']->getYear() <=> $b['identifier']->getYear();
@@ -208,7 +198,7 @@ class CertificateIdentifierList
      */
     public function sortDesc(): void
     {
-        $this->uniqueArray->sort(function($a, $b) {
+        $this->uniqueIdentifierArray->sort(function($a, $b) {
             // First, compare year descending
             if ($a['identifier']->getYear() !== $b['identifier']->getYear()) {
                 return $b['identifier']->getYear() <=> $a['identifier']->getYear();
@@ -225,7 +215,7 @@ class CertificateIdentifierList
      */
     public function getNumberOfIdentifiers(): int
     {
-        return $this->uniqueArray->count();
+        return $this->uniqueIdentifierArray->count();
     }
 
     /**
@@ -237,7 +227,7 @@ class CertificateIdentifierList
     {
         $this->sortDesc();
         // get first element of sort descending -> newest element
-        return $this->uniqueArray->at(0)['identifier'];
+        return $this->uniqueIdentifierArray->at(0)['identifier'];
     }
 
     /**
@@ -248,7 +238,7 @@ class CertificateIdentifierList
     public function toStr(): string
     {
         $returnStr = "Certificate Identifiers:\n";
-        foreach ($this->uniqueArray->toArray() as $identifierInformation) {
+        foreach ($this->uniqueIdentifierArray->toArray() as $identifierInformation) {
             $returnStr .= $identifierInformation['identifier']->toStr() . "\n";
         }
         return $returnStr;
@@ -256,7 +246,7 @@ class CertificateIdentifierList
 
     public function getIssueInformationByIdentifier(CertificateIdentifier $identifier): ?array
     {
-        foreach ($this->uniqueArray->toArray() as $identifierInformation) {
+        foreach ($this->uniqueIdentifierArray->toArray() as $identifierInformation) {
             if($identifierInformation['identifier']->toStr() == $identifier->toStr()){
                 return $identifierInformation;
             }
