@@ -127,9 +127,7 @@ class CodecheckIssueLabels
 
     public function addLabelArray(array $labels): void
     {
-        foreach ($labels as $label) {
-            $this->uniqueArray->add($label);
-        }
+        $this->uniqueArray->addArray($labels);
     }
 
     /**
