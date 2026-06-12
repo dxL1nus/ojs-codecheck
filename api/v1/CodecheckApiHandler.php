@@ -24,6 +24,7 @@ use APP\plugins\generic\codecheck\classes\Exceptions\RoleExceptions\RoleNotFound
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
 use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckIssueLabels;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -218,7 +219,15 @@ class CodecheckApiHandler
     {
         $dbLabelsOutdated = false;
 
-        $issueLabelsLastUpdated = strtotime($this->getIssueLabelsLastUpdated());
+        try {
+            $issueLabelsLastUpdated = strtotime($this->getIssueLabelsLastUpdated());
+        } catch (\Throwable $e) {
+            JsonResponse::staticResponse([
+                'success'   => false,
+                'error'     => $e->getMessage(),
+            ], $e->getCode());
+            return;
+        }
         $now = strtotime(date('Y-m-d H:i:s'));
         $timeDifferenceInHours = round(($now - $issueLabelsLastUpdated) / 3600);
 
@@ -235,7 +244,7 @@ class CodecheckApiHandler
                 JsonResponse::staticResponse([
                     'success'   => false,
                     'error'     => $e->getMessage(),
-                ], 400);
+                ], $e->getCode());
                 return;
             }
         }
@@ -277,8 +286,9 @@ class CodecheckApiHandler
     private function getIssueLabelsLastUpdated(): string
     {
         if (!Schema::hasTable('codecheck_issue_labels')) {
-            // TODO: implement what happens when the table doesn't exist
+            // The issue labels table doesn't exist
             CodecheckLogger::error("CODECHECK API: The Issue Label table doesn't exist");
+            throw new Exception("The table 'codecheck_issue_labels' doesn't exist.", 500);
         }
 
         $labelsLastUpdated = DB::table('codecheck_issue_labels')
