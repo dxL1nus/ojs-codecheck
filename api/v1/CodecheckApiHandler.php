@@ -296,6 +296,73 @@ class CodecheckApiHandler
     }
 
     /**
+     * Validates general POST parameters for reserveIdentifier & updateGithubIssue, returning an error message string
+     * on the first failed guard, or null if all parameters are valid.
+     */
+    private function validateIdentifierPostParameters(array $postParams): ?string
+    {
+        if(!is_array($postParams['issue'])) {
+            return "The parameter 'issue' must be an array!";
+        }
+        if(!is_array($postParams['issue']['labelsSelected'])) {
+            return "The parameter 'issue.labelsSelected' must be an array!";
+        }
+        if (!is_array($postParams['submission'])) {
+            return "Parameter 'submission' must be an array.";
+        }
+        if (!is_string($postParams['submission']['title'] ?? null)) {
+            return "Parameter 'submission.title' must be a string.";
+        }
+        if (!is_string($postParams['submission']['authorString'])) {
+            return "Parameter 'submission.authorString' must be a string.";
+        }
+        if (!is_array($postParams['repositories'])) {
+            return "Parameter 'repositories' must be an array.";
+        }
+        if (!is_array($postParams['codecheckers'])) {
+            return "Parameter 'codecheckers' must be an array.";
+        }
+
+        return null;
+    }
+
+    /**
+     * Validates POST parameters for reserveIdentifier, returning an error message string
+     * on the first failed guard, or null if all parameters are valid.
+     */
+    private function validateReserveIdentifierParameters(array $postParams): ?string
+    {
+        $error = $this->validateIdentifierPostParameters($postParams);
+        if(!is_null($error)) {
+            return $error;
+        }
+        if (!is_string($postParams['reserveIdentifierMode'])) {
+            return "No Reserve Identifier Mode was specified.";
+        }
+        if ($postParams['reserveIdentifierMode'] === 'linkExistingIdentifier' && !is_string($postParams['identifier'] ?? null)) {
+            return "Parameter 'identifier' must be a string when using mode 'linkExistingIdentifier'.";
+        }
+
+        return null;
+    }
+
+    private function validateUpdateGithubIssueParameters(array $postParams): ?string
+    {
+        $error = $this->validateIdentifierPostParameters($postParams);
+        if(!is_null($error)) {
+            return $error;
+        }
+        if(!is_int($postParams['issue']['number'])) {
+            return "The parameter 'issue.number' must be an integer!";
+        }
+        if(!is_string($postParams['issue']['url'])) {
+            return "The parameter 'issue.url' must be a string!";
+        }
+
+        return null;
+    }
+
+    /**
      * This reserves a new Identifier
      * 
      * @return void
@@ -303,21 +370,23 @@ class CodecheckApiHandler
     public function reserveIdentifier(): void
     {
         $postParams = json_decode(file_get_contents('php://input'), true);
-        $reserveIdentifierMode = $postParams['reserveIdentifierMode'];
+        
+        $parameterValidationError = $this->validateReserveIdentifierParameters($postParams);
 
-        if(!is_string($reserveIdentifierMode)) {
+        if ($parameterValidationError !== null) {
             JsonResponse::staticResponse([
                 'success'   => false,
-                'error'     => "No Reserve Identifier Mode was specified.",
+                'error'     => $parameterValidationError,
             ], 400);
             return;
         }
 
-        $issueLabelArray = $postParams["labels"];
+        $issueLabelArray = $postParams["issue"]["labelsSelected"];
         $submissionData = $postParams["submission"];
         $articleTitle = $submissionData["title"];
         $repositories = $postParams["repositories"];
         $codecheckers = $postParams["codecheckers"];
+        $reserveIdentifierMode = $postParams['reserveIdentifierMode'];
 
         $context = $this->request->getContext();
         $githubPersonalAccessToken = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_PERSONAL_ACCESS_TOKEN);
@@ -325,6 +394,14 @@ class CodecheckApiHandler
         $githubRegisterRepository = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_REPOSITORY);
 
         $authorString = $this->getAuthorStringBasedOnAuthorAnonymity();
+
+        if (!in_array($reserveIdentifierMode, ['api', 'newIssueUrl', 'linkExistingIdentifier'])) {
+            JsonResponse::staticResponse([
+                'success' => false,
+                'error'   => "An unexpected mode for the reservation of the Certificate Identifier was given: " . $reserveIdentifierMode,
+            ], 400);
+            return;
+        }
 
         // CODECHECK GitHub Issue Register API parser
         $codecheckGithubRegisterApiClient = new CodecheckGithubRegisterApiClient(
@@ -343,107 +420,78 @@ class CodecheckApiHandler
                     $codecheckGithubRegisterApiClient,
                     CertificateIdentifier::fromStr($identifierStr)
                 );
+                $this->linkExistingIdentifier($identifierStr, $certificateIdentifierList);
+                return;
             }
+
             $certificateIdentifierList = CertificateIdentifierList::fromApi(
                 $codecheckGithubRegisterApiClient,
                 true
             );
-        } catch (ApiFetchException $ae) {
-            JsonResponse::staticResponse([
-                'success'   => false,
-                'error'     => $ae->getMessage(),
-            ], 400);
-            return;
-        } catch (NoMatchingIssuesFoundException $me) {
-            JsonResponse::staticResponse([
-                'success'   => false,
-                'error'     => $me->getMessage(),
-            ], 400);
-            return;
-        }
-
-        if($reserveIdentifierMode == 'linkExistingIdentifier') {
-            $identifierStr = $postParams["identifier"];
-            $this->linkExistingIdentifier($identifierStr, $certificateIdentifierList);
-            return;
-        }
-
-        // check if they are of type string (If not return success false over the API)
-        if(is_array($issueLabelArray) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle) && is_array($repositories) && is_array($codecheckers)) {
             // sort Certificate Identifier list descending
             $certificateIdentifierList->sortDesc();
-
             // create the new unique Identifier
             $newIdentifier = CertificateIdentifier::newUniqueIdentifier($certificateIdentifierList);
-
             // create the CODECHECK Issue Labels with the selected issue labels
             $codecheckIssueLabels = new CodecheckIssueLabels($issueLabelArray);
 
-            switch ($reserveIdentifierMode) {
-                case 'api':
-                    $issue = $this->reserveIdentifierWithApi(
-                        $codecheckGithubRegisterApiClient,
-                        $newIdentifier,
-                        $codecheckIssueLabels,
-                        $articleTitle,
-                        $authorString,
-                        $codecheckers,
-                        $repositories
-                    );
-                    $issueGithubUrl = $issue['html_url'];
-                    $issueNumber = $issue['number'];
-                    break;
-                
-                case 'newIssueUrl':
-                    $issueGithubUrl = $this->reserveIdentifierWithNewIssueUrl(
-                        $githubRegisterOrganization,
-                        $githubRegisterRepository,
-                        $newIdentifier,
-                        $codecheckIssueLabels,
-                        $articleTitle,
-                        $authorString,
-                        $codecheckers,
-                        $repositories
-                    );
-                    break;
-
-                default:
-                    JsonResponse::staticResponse([
-                        'success'   => false,
-                        'error'     => "An unexpected mode for the reservation of the Certificate Identifier was given: " . $reserveIdentifierMode,
-                    ], 400);
-                    break;
+            if($reserveIdentifierMode == 'api') {
+                $issue = $this->reserveIdentifierWithApi(
+                    $codecheckGithubRegisterApiClient,
+                    $newIdentifier,
+                    $codecheckIssueLabels,
+                    $articleTitle,
+                    $authorString,
+                    $codecheckers,
+                    $repositories
+                );
+                $issueGithubUrl = $issue['html_url'];
+                $issueNumber = $issue['number'];
+            } else if($reserveIdentifierMode == 'newIssueUrl') {
+                $issueGithubUrl = $this->reserveIdentifierWithNewIssueUrl(
+                    $githubRegisterOrganization,
+                    $githubRegisterRepository,
+                    $newIdentifier,
+                    $codecheckIssueLabels,
+                    $articleTitle,
+                    $authorString,
+                    $codecheckers,
+                    $repositories
+                );
+                $issueNumber = null;
             }
-
-            // check if an error happened and return if that is the case
-            if($issueGithubUrl == null) { return; }
-
-            // return a success result
-            JsonResponse::staticResponse([
-                'success' => true,
-                'identifier' => $newIdentifier->toStr(),
-                'issueUrl' => $issueGithubUrl,
-                'issueNumber' => $issueNumber ?? null,
-            ], 200);
-            return;
-        } else {
+        } catch (\Throwable $e) {
             JsonResponse::staticResponse([
                 'success'   => false,
-                'error'     => "Some Parameters sent with POST to the API aren't of the expected datatype.",
-            ], 400);
+                'error'     => $e->getMessage(),
+            ], $e->getCode());
             return;
         }
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'identifier' => $newIdentifier->toStr(),
+            'issueUrl' => $issueGithubUrl,
+            'issueNumber' => $issueNumber,
+        ], 200);
+        return;
     }
 
     public function updateGithubIssue(): void
     {
         $postParams = json_decode(file_get_contents('php://input'), true);
-        $issue = $postParams['issue'];
-        if(!is_array($issue) || !is_int($issue['number']) || !is_string($issue['url'])) {
-            # TODO: JSON Error Response
+
+        $parameterValidationError = $this->validateUpdateGithubIssueParameters($postParams);
+
+        if ($parameterValidationError !== null) {
+            JsonResponse::staticResponse([
+                'success'   => false,
+                'error'     => $parameterValidationError,
+            ], 400);
             return;
         }
 
+        $issue = $postParams['issue'];
         $issueLabelArray = $postParams["issue"]["labelsSelected"];
         $submissionData = $postParams["submission"];
         $articleTitle = $submissionData["title"];
@@ -467,9 +515,9 @@ class CodecheckApiHandler
             $context, // The Journal Object of the Submission
         );
 
-        if(is_string($identifierStr) && is_array($issueLabelArray) && is_array($submissionData) && is_string($authorString) && is_string($articleTitle) && is_array($repositories) && is_array($codecheckers)) {
-            $identifier = CertificateIdentifier::fromStr($identifierStr);
-            $codecheckIssueLabels = new CodecheckIssueLabels($issueLabelArray);
+        $identifier = CertificateIdentifier::fromStr($identifierStr);
+        $codecheckIssueLabels = new CodecheckIssueLabels($issueLabelArray);
+        try {
             $updatedIssue = $codecheckGithubRegisterApiClient->updateIssue(
                 $issue['number'],
                 $identifier,
@@ -480,29 +528,25 @@ class CodecheckApiHandler
                 $repositories
             );
 
-            # TODO: Check if the update function worked and return JSON Error if not
-
-            // return a success result
             JsonResponse::staticResponse([
                 'success' => true,
                 'identifier' => $identifier->toStr(),
                 'issueUrl' => $updatedIssue['html_url'],
-                'issueNumber' => $updatedIssue['number'] ?? null,
+                'issueNumber' => $updatedIssue['number'],
             ], 200);
-            return;
-        } else {
+        } catch (\Throwable $e) {
             JsonResponse::staticResponse([
-                'success'   => false,
-                'error'     => "Some Parameters sent with POST to the API aren't of the expected datatype.",
-            ], 400);
-            return;
+                'success' => false,
+                'identifier' => $identifier->toStr(),
+                'error' => $e->getMessage()
+            ], $e->getCode());
         }
     }
 
     /**
      * This reserves a new Identifier with the GitHub API
      * 
-     * @return ?array
+     * @return array
      */
     private function reserveIdentifierWithApi(
         CodecheckGithubRegisterApiClient $codecheckGithubRegisterApiClient,
@@ -512,26 +556,17 @@ class CodecheckApiHandler
         string $authorString,
         array $codecheckers,
         array $repositories
-    ): ?array
+    ): array
     {
         // Add the new issue to the CODECHECK GtiHub Register
-        try {
-            $issue = $codecheckGithubRegisterApiClient->addIssue(
-                $identifier,
-                $issueLabels,
-                $articleTitle,
-                $authorString,
-                $codecheckers,
-                $repositories
-            );
-        } catch (ApiCreateException $e) {
-            // return an error result
-            JsonResponse::staticResponse([
-                'success'   => false,
-                'error'     => $e->getMessage(),
-            ], 400);
-            return null;
-        }
+        $issue = $codecheckGithubRegisterApiClient->addIssue(
+            $identifier,
+            $issueLabels,
+            $articleTitle,
+            $authorString,
+            $codecheckers,
+            $repositories
+        );
 
         return $issue;
     }
@@ -586,22 +621,21 @@ class CodecheckApiHandler
         }
         $identifier = CertificateIdentifier::fromStr($rawIdentifier);
         $issue = $certificateIdentifierList->getIssueInformationByIdentifier($identifier);
-        if(is_string($issue['issueUrl']) && is_int($issue['issueNumber'])) {
+        if(!is_array($issue) || !is_string($issue['issueUrl']) || !is_int($issue['issueNumber'])) {
             JsonResponse::staticResponse([
-                'success' => true,
-                'identifier' => $identifier->toStr(),
-                'issueUrl' => $issue['issueUrl'],
-                'issueNumber' => $issue['issueNumber'],
-            ], 200);
+                'success'   => false,
+                'identifier' => $identifierStr,
+                'error'     => "The certificate with the Identifier: ". $identifierStr . " doesn't exist in the GitHub Register.",
+            ], 404);
             return;
         }
 
         JsonResponse::staticResponse([
-            'success'   => false,
-            'identifier' => $identifierStr,
-            'error'     => "The certificate with the Identifier: ". $identifierStr . " doesn't exist in the GitHub Register.",
-        ], 404);
-        return;
+            'success' => true,
+            'identifier' => $identifier->toStr(),
+            'issueUrl' => $issue['issueUrl'],
+            'issueNumber' => $issue['issueNumber'],
+        ], 200);
     }
 
     /**

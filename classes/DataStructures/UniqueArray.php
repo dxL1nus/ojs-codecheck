@@ -3,7 +3,7 @@ namespace APP\plugins\generic\codecheck\classes\DataStructures;
 
 class UniqueArray
 {
-    private $array = [];
+    protected $array = [];
 
     /**
      * Factory method that creates a new UniqueArray from a normal array
@@ -14,9 +14,7 @@ class UniqueArray
     public static function from(array $arr): UniqueArray
     {
         $uniqueArray = new UniqueArray();
-        foreach ($arr as $element) {
-            $uniqueArray->add($element);
-        }
+        $uniqueArray->addArray($arr);
 
         return $uniqueArray;
     }
@@ -30,6 +28,13 @@ class UniqueArray
     {
         if(!$this->contains($element)) {
             $this->array[] = $element;
+        }
+    }
+
+    public function addArray(array $arr): void
+    {
+        foreach ($arr as $element) {
+            $this->add($element);
         }
     }
 
@@ -66,21 +71,6 @@ class UniqueArray
             $this->array,   // the array
             false,           // don't use strict checking, as we sometimes want to check that objects are the same by checking their value and not their identity
         );
-    }
-
-    /**
-     * This function checks if a specific Certificate Identifier exists inside the `UniqueArray`
-     * 
-     * @return bool Returns `true` if the identifier exists inside the `UniqueArray` and `false` if otherwise
-     */
-    public function containsIdentifier(array $element): bool
-    {
-        foreach ($this->array as $uniqueArrayElement) {
-            if($element["identifier"]->toStr() == $uniqueArrayElement['identifier']->toStr()){
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
