@@ -92,6 +92,24 @@ msgstr "+ Label"
 msgid "plugins.generic.codecheck.settings.github.labels.emptyState"
 msgstr "No custom journal labels added yet"
 
+msgid "plugins.generic.codecheck.settings.updateIssue.author"
+msgstr "Update the author names on the Issue Title"
+
+msgid "plugins.generic.codecheck.settings.updateIssue.codecheckers"
+msgstr "Update the codecheckers"
+
+msgid "plugins.generic.codecheck.settings.updateIssue.repositories"
+msgstr "Update the repository links"
+
+msgid "plugins.generic.codecheck.settings.updateIssue.article"
+msgstr "Update the article / submission data"
+
+msgid "plugins.generic.codecheck.settings.updateIssue.title"
+msgstr "Update the Issue Title (containing the article's authors)"
+
+msgid "plugins.generic.codecheck.settings.updateIssue.body"
+msgstr "Update the Issue Description (containing the article, codechecker and repository information)"
+
 msgid "plugins.generic.codecheck.title"
 msgstr "CODECHECK"
 
@@ -627,3 +645,30 @@ msgstr "Show CODECHECK column in submissions dashboard"
 
 msgid "plugins.generic.codecheck.settings.showDashboardColumn.description"
 msgstr "Display a CODECHECK status column in the editorial submissions dashboard. Default: enabled."
+
+msgid "plugins.generic.codecheck.github.issue.display"
+msgstr "Github Register Issue"
+
+msgid "plugins.generic.codecheck.github.issue.display.errorModal.title"
+msgstr "No URL is currently configured for the GitHub Register Issue."
+
+msgid "plugins.generic.codecheck.github.issue.display.errorModal.message"
+msgstr "Please first connect to the Issue with the reservation of a certificate identifier."
+
+msgid "plugins.generic.codecheck.github.issue.display.button.viewIssue"
+msgstr "View Issue"
+
+msgid "plugins.generic.codecheck.github.issue.display.connected"
+msgstr "Connected"
+
+msgid "plugins.generic.codecheck.github.issue.display.disconnected"
+msgstr "Disconnected"
+
+msgid "plugins.generic.codecheck.github.issue.display.certificateIdentifier"
+msgstr "Certificate Identifier: {$identifier}"
+
+msgid "plugins.generic.codecheck.github.issue.display.certificateIdentifier.notSet"
+msgstr "not set"
+
+msgid "plugins.generic.codecheck.github.issue.display.registerRepository"
+msgstr "Register Repository: {$repository}"

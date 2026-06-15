@@ -13,6 +13,7 @@ use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
 use APP\plugins\generic\codecheck\classes\Exceptions\GithubUrlParseException;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterIssue;
+use APP\plugins\generic\codecheck\classes\Constants;
 use APP\plugins\generic\codecheck\classes\Exceptions\ApiUpdateException;
 use APP\plugins\generic\codecheck\classes\Log\CodecheckLogger;
 
@@ -248,6 +249,7 @@ class CodecheckGithubRegisterApiClient
      * @return array Returns the GitHub URL & Issue Number of the newly created issue
      */
     public function updateIssue(
+        array $updateInformation,
         int $issueNumber,
         CertificateIdentifier $certificateIdentifier,
         CodecheckIssueLabels $codecheckIssueLabels,
@@ -273,10 +275,15 @@ class CodecheckGithubRegisterApiClient
             $repositories
         );
 
-        $issueContents = [
-            'title' => $codecheckIssue->getTitle(),
-            'body'  => $codecheckIssue->getBody()
-        ];
+        $issueContents = [];
+
+        if(in_array(Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE, $updateInformation)) {
+            $issueContents['title'] = $codecheckIssue->getTitle();
+        }
+
+        if(in_array(Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY, $updateInformation)) {
+            $issueContents['body'] = $codecheckIssue->getBody();
+        }
 
         if(!empty($codecheckIssueLabels->get()->toArray())){
             $issueContents['labels'] = $codecheckIssue->getLabels();

@@ -36,4 +36,8 @@ class Constants
     public const CODECHECK_GITHUB_CUSTOM_LABELS = 'githubCustomLabels';
     public const CODECHECK_MODE = 'codecheckMode';
     public const CODECHECK_SHOW_DASHBOARD_COLUMN = 'showDashboardColumn';
+    # Update Github Register Issue
+    public const CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_FIELDS = 'codecheckGithubUpdateFields';
+    public const CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE = 'updateTitle';
+    public const CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY = 'updateBody';
 }

@@ -80,6 +80,11 @@ class CodecheckApiHandler
                     'handler' => [$this, 'generateYaml'],
                     'roles' => $roles->readMetadata(),
                 ],
+                [
+                    'route' => 'register',
+                    'handler' => [$this, 'getGithubRegisterRepositoryUrl'],
+                    'roles' => $roles->readMetadata(),
+                ],
             ],
             'POST' => [
                 [
@@ -258,6 +263,18 @@ class CodecheckApiHandler
         JsonResponse::staticResponse([
             'success' => true,
             'labels' => $codecheckIssueLabels->get()->toArray(),
+        ], 200);
+    }
+
+    public function getGithubRegisterRepositoryUrl(): void
+    {
+        $context = $this->request->getContext();
+        $githubRegisterRepositoryOrganization = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_ORGANIZATION);
+        $githubRegisterRepositoryRepository = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_REPOSITORY);
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'url' => "github.com/$githubRegisterRepositoryOrganization/$githubRegisterRepositoryRepository",
         ], 200);
     }
 
@@ -513,6 +530,7 @@ class CodecheckApiHandler
         $githubPersonalAccessToken = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_PERSONAL_ACCESS_TOKEN);
         $githubRegisterOrganization = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_ORGANIZATION);
         $githubRegisterRepository = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_REPOSITORY);
+        $updateInformation = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_FIELDS);
 
         $authorString = $this->getAuthorStringBasedOnAuthorAnonymity();
 
@@ -529,6 +547,7 @@ class CodecheckApiHandler
         $codecheckIssueLabels = new CodecheckIssueLabels($issueLabelArray);
         try {
             $updatedIssue = $codecheckGithubRegisterApiClient->updateIssue(
+                $updateInformation,
                 $issue['number'],
                 $identifier,
                 $codecheckIssueLabels,

@@ -134,6 +134,15 @@ class SettingsForm extends Form
             Constants::CODECHECK_SHOW_DASHBOARD_COLUMN,
             $showDashboardColumn === null ? true : (bool) $showDashboardColumn
         );
+        
+        $updateFields = $this->plugin->getSetting(
+            $context->getId(),
+            Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_FIELDS
+        ) ?? [];
+
+        // Unpack so each checkbox gets its own template variable
+        $this->setData(Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE, in_array(Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE, $updateFields));
+        $this->setData(Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY, in_array(Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY, $updateFields));
 
         parent::initData();
     }
@@ -154,6 +163,9 @@ class SettingsForm extends Form
             Constants::CODECHECK_GITHUB_REGISTER_REPOSITORY,
             Constants::CODECHECK_GITHUB_CUSTOM_LABELS,
             Constants::CODECHECK_SHOW_DASHBOARD_COLUMN,
+            Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE,
+            Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY,
+            Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_FIELDS,
         ]);
 
         parent::readInputData();
@@ -258,6 +270,17 @@ class SettingsForm extends Form
             $context->getId(),
             Constants::CODECHECK_SHOW_DASHBOARD_COLUMN,
             (bool) $this->getData(Constants::CODECHECK_SHOW_DASHBOARD_COLUMN)
+        );
+        
+        $updateFields = array_values(array_filter([
+            $this->getData(Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE) ? Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE : null,
+            $this->getData(Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY) ? Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY : null,
+        ]));
+
+        $this->plugin->updateSetting(
+            $context->getId(),
+            Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_FIELDS,
+            $updateFields
         );
 
         $notificationMgr = new NotificationManager();
