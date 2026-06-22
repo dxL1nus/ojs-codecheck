@@ -53,7 +53,6 @@ class SettingsForm extends Form
             ->getRequest()
             ->getContext();
 
-        // Load CODECHECK-specific settings
         $this->setData(
             Constants::CODECHECK_ENABLED,
             $this->plugin->getSetting(
@@ -126,6 +125,16 @@ class SettingsForm extends Form
             ) ?? []
         );
 
+        // Default to true — show the dashboard column unless explicitly disabled
+        $showDashboardColumn = $this->plugin->getSetting(
+            $context->getId(),
+            Constants::CODECHECK_SHOW_DASHBOARD_COLUMN
+        );
+        $this->setData(
+            Constants::CODECHECK_SHOW_DASHBOARD_COLUMN,
+            $showDashboardColumn === null ? true : (bool) $showDashboardColumn
+        );
+
         parent::initData();
     }
 
@@ -144,6 +153,7 @@ class SettingsForm extends Form
             Constants::CODECHECK_GITHUB_REGISTER_ORGANIZATION,
             Constants::CODECHECK_GITHUB_REGISTER_REPOSITORY,
             Constants::CODECHECK_GITHUB_CUSTOM_LABELS,
+            Constants::CODECHECK_SHOW_DASHBOARD_COLUMN,
         ]);
 
         parent::readInputData();
@@ -165,10 +175,14 @@ class SettingsForm extends Form
             $this->getData(Constants::CODECHECK_GITHUB_CUSTOM_LABELS) ?? []
         );
         $templateMgr->assign('codecheckModes', [
-            'opt-in' => __('plugins.generic.codecheck.settings.mode.opt.in'),
-            'opt-out' => __('plugins.generic.codecheck.settings.mode.opt.out'),
+            'opt-in'    => __('plugins.generic.codecheck.settings.mode.opt.in'),
+            'opt-out'   => __('plugins.generic.codecheck.settings.mode.opt.out'),
             'mandatory' => __('plugins.generic.codecheck.settings.mode.mandatory'),
         ]);
+        $templateMgr->assign(
+            'showDashboardColumn',
+            $this->getData(Constants::CODECHECK_SHOW_DASHBOARD_COLUMN)
+        );
 
         return parent::fetch($request, $template, $display);
     }
@@ -183,7 +197,6 @@ class SettingsForm extends Form
             ->getRequest()
             ->getContext();
 
-        // Save CODECHECK-specific settings
         $this->plugin->updateSetting(
             $context->getId(),
             Constants::CODECHECK_ENABLED,
@@ -239,6 +252,12 @@ class SettingsForm extends Form
                 (array) $this->getData(Constants::CODECHECK_GITHUB_CUSTOM_LABELS),
                 fn ($label) => !empty($label)
             ))
+        );
+
+        $this->plugin->updateSetting(
+            $context->getId(),
+            Constants::CODECHECK_SHOW_DASHBOARD_COLUMN,
+            (bool) $this->getData(Constants::CODECHECK_SHOW_DASHBOARD_COLUMN)
         );
 
         $notificationMgr = new NotificationManager();

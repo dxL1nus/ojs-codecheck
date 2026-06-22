@@ -1,7 +1,7 @@
 {**
  * templates/settings.tpl
  *
- * Copyright (c) 2025 CODECHECK Initiative
+ * Copyright (c) 2026 CODECHECK Initiative
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
  * Settings form for the CODECHECK plugin.
@@ -101,7 +101,20 @@
 				label="plugins.generic.codecheck.settings.enableCodecheck.description"
 			}
 		{/fbvFormSection}
-
+		
+		{* Show CODECHECK column in submissions dashboard *}
+		{fbvFormSection list=true}
+			<div class="field-header">
+				<label class="pkp_form_label">{translate key="plugins.generic.codecheck.settings.showDashboardColumn"}</label>
+			</div>
+			{fbvElement
+				type="checkbox"
+				id="showDashboardColumn"
+				checked=$showDashboardColumn
+				label="plugins.generic.codecheck.settings.showDashboardColumn.description"
+			}
+		{/fbvFormSection}
+		
 		{* Setting for different CODECHECK modes *}
 		{fbvFormSection
 			list=true

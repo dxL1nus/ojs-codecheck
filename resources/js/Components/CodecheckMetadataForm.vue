@@ -11,6 +11,10 @@
     </div>
 
     <div v-else-if="dataLoaded">
+      <!-- Warning box: shown when author opt-in doesn't match journal mode (Issue #30) -->
+      <div v-if="showOptInWarning" class="codecheck-optin-warning">
+        ⚠ {{ optInWarningMessage }}
+      </div>
       <div class="codecheck-header">
         <div class="header-content">
           <div class="version-selector">
@@ -383,6 +387,7 @@ export default {
     canEdit: { type: Boolean, default: true },
     name: {type: String},
     value: {type: String},
+    codecheckMode: { type: String, default: 'opt-in' },
   },
   setup() {
     const { t } = useLocalize();
@@ -455,7 +460,22 @@ export default {
     // variable that stores if the Identifier was set and thus buttons should be disabled
     isIdentifierReserved() {
       return this.metadata.certificate.trim() !== '';
-    }
+    },
+    showOptInWarning() {
+      const optIn = this.submission?.codecheckOptIn;
+      const mode  = this.codecheckMode;
+      // opt-in journal but author did not opt in
+      if (mode === 'opt-in'  && !optIn)         return true;
+      // opt-out journal but author explicitly opted out
+      if (mode === 'opt-out' && optIn === false) return true;
+      return false;
+    },
+    optInWarningMessage() {
+      if (this.codecheckMode === 'opt-in') {
+        return this.t('plugins.generic.codecheck.warning.notOptedIn');
+      }
+      return this.t('plugins.generic.codecheck.warning.optedOut');
+    },
   },
   mounted() {
     this.loadData();
@@ -1176,6 +1196,16 @@ export default {
 </script>
 
 <style>
+.codecheck-optin-warning {
+  margin: 0 0 1rem 0;
+  padding: 0.75rem 1rem;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  border-radius: 3px;
+  font-size: 14px;
+  color: #856404;
+}
+
 .text-bold {
   font-weight: bold !important;
 }
