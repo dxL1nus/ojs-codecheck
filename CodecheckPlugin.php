@@ -190,12 +190,40 @@ class CodecheckPlugin extends GenericPlugin
     {
         $templateMgr = $args[0];
         $request = Application::get()->getRequest();
-        
+        $context = $request->getContext();
+        $contextId = $context->getId();
+
+        // ----------------------------------------------------------------
+        // Editorial dashboard — inject dashboard config for the Vue JS layer.
+        // Passes showDashboardColumn (Issue #30) and codecheckMode so the
+        // CODECHECK status column and opt-in warning box can be controlled.
+        // ----------------------------------------------------------------
+        if ($request->getRequestedOp() == 'editorial' && $request->getRequestedPage() == 'dashboard') {
+            $showDashboardColumn = $this->getSetting($contextId, Constants::CODECHECK_SHOW_DASHBOARD_COLUMN);
+
+            $dashboardConfig = json_encode([
+                'showDashboardColumn' => $showDashboardColumn === null ? true : (bool) $showDashboardColumn,
+                'codecheckMode'       => $this->getSetting($contextId, Constants::CODECHECK_MODE) ?? 'opt-in',
+            ]);
+
+            $templateMgr->addJavaScript(
+                'codecheck-dashboard-config',
+                'window.codecheckDashboardConfig = ' . $dashboardConfig . ';',
+                [
+                    'inline'   => true,
+                    'contexts' => ['backend'],
+                    'priority' => TemplateManager::STYLE_SEQUENCE_LAST,
+                ]
+            );
+        }
+
+        // ----------------------------------------------------------------
+        // Workflow page — inject submission data for the CODECHECK tab
+        // ----------------------------------------------------------------
         if ($request->getRequestedOp() == 'workflow') {
             $submission = $request->getRouter()->getHandler()->getAuthorizedContextObject(ASSOC_TYPE_SUBMISSION);
             
             if ($submission) {
-                $publication = $submission->getCurrentPublication();
                 $templateMgr->setState([
                     'codecheckSubmission' => [
                         'id' => $submission->getId(),
@@ -249,7 +277,7 @@ class CodecheckPlugin extends GenericPlugin
             $request = Application::get()->getRequest();
             $context = $request->getContext();
             $codecheckMode = $this->getSetting($context->getId(), Constants::CODECHECK_MODE);
-            error_log("[CODECHECK Settings] Mode: " . $codecheckMode);
+            CodecheckLogger::debug('Mode: ' . $codecheckMode);
             $checkboxValue = false;
             $checkboxDisabled = false;
             $codecheckDescription = __('plugins.generic.codecheck.optIn.description', [

@@ -582,3 +582,21 @@ msgstr "Code verification is currently in progress."
 
 msgid "plugins.generic.codecheck.additionalContent.frontendLabel"
 msgstr "Additional information"
+
+msgid "plugins.generic.codecheck.dashboard.columnHeader"
+msgstr "CODECHECK"
+
+msgid "plugins.generic.codecheck.dashboard.add"
+msgstr "Add"
+
+msgid "plugins.generic.codecheck.warning.notOptedIn"
+msgstr "This article was not opted into CODECHECK during submission."
+
+msgid "plugins.generic.codecheck.warning.optedOut"
+msgstr "The author opted out of CODECHECK for this article."
+
+msgid "plugins.generic.codecheck.settings.showDashboardColumn"
+msgstr "Show CODECHECK column in submissions dashboard"
+
+msgid "plugins.generic.codecheck.settings.showDashboardColumn.description"
+msgstr "Display a CODECHECK status column in the editorial submissions dashboard. Default: enabled."
