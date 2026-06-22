@@ -166,7 +166,7 @@ export default {
         return this.t(this.statusData.status);
     },
     getStatusSelect() {
-        let statusSelectString = '<select class="codecheck-status-select">';
+        let statusSelectString = '<select id="codecheck-status-select">';
         this.allStatuses.forEach(element => {
             if(element === this.statusData.status) {
                 statusSelectString += '<option value="' + element + '" selected>' + this.t(element) + '</option>';
@@ -405,7 +405,7 @@ export default {
     text-align: right !important;
 }
 
-.codecheck-status-select {
+#codecheck-status-select {
   font-size: 14px;
   padding: 6px;
   border: 1px solid #ccc;
