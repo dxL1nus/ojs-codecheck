@@ -4,7 +4,7 @@
             <h3 class="text-2xl-bold uppercase text-heading">{{ t('plugins.generic.codecheck.github.issue.display') }}</h3>
             <div class="flex gap-x-2">
                 <button
-                    v-if="issue.connected"
+                    v-if="isConnected"
                     class="
                         pkpButton
                         pkpButton--isPrimary
@@ -34,23 +34,23 @@
                 <div class="border-light border-t p-4">
                     <p class="text-base-normal" :class="statusClass">
                         <ul>
-                            <section v-if="issue.connected">
-                                <li>
-                                    <span class="pkpBadge codecheckBadge--isConnected">
-                                        <div class="flex items-center justify-center">{{ t('plugins.generic.codecheck.github.issue.display.connected') }}</div>
-                                    </span>
-                                </li>
-                                <li>{{ t('plugins.generic.codecheck.github.issue.display.certificateIdentifier', {identifier: issue.certificate}) }}</li>
-                            </section>
-                            <section v-if="!issue.connected">
-                                <li>
-                                    <span class="pkpBadge codecheckBadge--isDisconnected">
-                                        <div class="flex items-center justify-center">{{ t('plugins.generic.codecheck.github.issue.display.disconnected') }}</div>
-                                    </span>
-                                </li>
-                                <li>{{ t('plugins.generic.codecheck.github.issue.display.certificateIdentifier', {identifier: t('plugins.generic.codecheck.github.issue.display.certificateIdentifier.notSet')}) }}</li>
-                            </section>
-                            <li>{{ t('plugins.generic.codecheck.github.issue.display.registerRepository', {repository: issue.repository}) }}</li>
+                            <li>
+                                <span v-if="isConnected" class="pkpBadge codecheckBadge--isConnected">
+                                    <div class="flex items-center justify-center">{{ t('plugins.generic.codecheck.github.issue.display.connected') }}</div>
+                                </span>
+                                <span v-else class="pkpBadge codecheckBadge--isDisconnected">
+                                    <div class="flex items-center justify-center">{{ t('plugins.generic.codecheck.github.issue.display.disconnected') }}</div>
+                                </span>
+                            </li>
+                            <li>
+                                <span v-if="certificateIdentifier">
+                                    {{ t('plugins.generic.codecheck.github.issue.display.certificateIdentifier', {identifier: certificateIdentifier}) }}
+                                </span>
+                                <span v-else>
+                                    {{ t('plugins.generic.codecheck.github.issue.display.certificateIdentifier', {identifier: t('plugins.generic.codecheck.github.issue.display.certificateIdentifier.notSet')}) }}
+                                </span>
+                            </li>
+                            <li>{{ t('plugins.generic.codecheck.github.issue.display.registerRepository', {repository: repository}) }}</li>
                         </ul>
                     </p>
                 </div>
@@ -69,6 +69,8 @@ export default {
     canEdit: { type: Boolean, default: true },
     name: {type: String},
     value: {type: String},
+    certificateIdentifier: {type: String, required: true},
+    issue: {type: Object, required: true},
   },
   setup() {
     const { t } = useLocalize();
@@ -83,143 +85,86 @@ export default {
       saveMessage: '',
       saveMessageType: '',
       hasUnsavedChanges: false,
-      issue: {
-        connected: false,
-        certificate: null,
-        repository: null,
-        url: null,
-      }
+      repository: null,
     }
   },
   computed: {
+    isConnected() {
+        return !!(this.issue?.url);
+    },
     codecheckMetadataLastSavedAt() {
         const pinia = pkp.registry._piniaInstance;
         const workflowStore = pinia?._s?.get('workflow');
 
-        return workflowStore?.codecheck?.statusUpdateEvent ?? null;
+        return workflowStore?.codecheck?.registerIssueDisplayUpdateEvent ?? null;
     }
   },
   mounted() {
-    this.loadMetadata();
+    this.loadData();
   },
   watch: {
     async codecheckMetadataLastSavedAt(newMetadataSaved) {
         if (newMetadataSaved !== null) {
-            await this.automaticStatusUpdate();
+            await this.loadData();
+            console.log("Identifier Save button hit: ", this.issue, this.certificateIdentifier);
         }
     }
   },
   methods: {
-    async loadMetadata() {
+    async loadData() {
         this.loading = true;
         this.error = null;
         this.dataLoaded = false;
-        
-        try {
-            if (!this.submission || !this.submission.id) {
-                throw new Error('Invalid submission object');
-            }
-
-            const submissionId = this.submission.id;
-            let apiUrl = pkp.context.apiBaseUrl;
-            apiUrl += 'codecheck';
-            apiUrl = `${apiUrl}/metadata?submissionId=${submissionId}`;
-            
-            const response = await fetch(apiUrl, {
-                method: 'GET',
-                headers: {
-                    'X-Csrf-Token': pkp.currentUser.csrfToken
-                }
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                throw new Error(`[HTTP ${response.status}] ${data.error}`);
-            }
-            
-            console.log(data)
-
-            this.submissionData = {
-                id: data.submission?.id || submissionId,
-                title: data.submission?.title || '',
-                authors: Array.isArray(data.submission?.authors) ? data.submission.authors : [],
-                doi: data.submission?.doi || '',
-                codeRepository: data.submission?.codeRepository || '',
-                dataRepository: data.submission?.dataRepository || '',
-                manifestFiles: data.submission?.manifestFiles || '',
-                dataAvailabilityStatement: data.submission?.dataAvailabilityStatement || ''
-            };
-            
-            if (data.codecheck && typeof data.codecheck === 'object') {
-                this.issue = {
-                    connected: !!(data.codecheck.issue?.url && data.codecheck.issue?.number),
-                    certificate: data.codecheck.certificate || '',
-                    url: data.codecheck.issue.url
-                };
-            } else {
-                this.issue = {
-                    connected: false,
-                    certificate: null,
-                    url: null
-                };
-            }
-
-            this.$nextTick(() => {
-                this.hasUnsavedChanges = false;
-            });
-            
-        } catch (error) {
-            console.error('Load error:', error);
-            this.error = this.t('plugins.generic.codecheck.loadError') + ': ' + error.message;
-        }
 
         try {
-            if (!this.submission || !this.submission.id) {
-                throw new Error('Invalid submission object');
-            }
-
-            const submissionId = this.submission.id;
-            let apiUrl = pkp.context.apiBaseUrl;
-            apiUrl += 'codecheck';
-            apiUrl = `${apiUrl}/register`;
-            
-            const response = await fetch(apiUrl, {
-                method: 'GET',
-                headers: {
-                    'X-Csrf-Token': pkp.currentUser.csrfToken
+            if(this.repository === null) {
+                if (!this.submission || !this.submission.id) {
+                    throw new Error('Invalid submission object');
                 }
-            });
 
-            const data = await response.json();
+                const submissionId = this.submission.id;
+                let apiUrl = pkp.context.apiBaseUrl;
+                apiUrl += 'codecheck';
+                apiUrl = `${apiUrl}/register`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-Csrf-Token': pkp.currentUser.csrfToken
+                    }
+                });
 
-            if (!response.ok || !data.success) {
-                throw new Error(`[HTTP ${response.status}] ${data.error}`);
+                const data = await response.json();
+
+                console.log("issue repository: ", data);
+
+                if (!response.ok || !data.success) {
+                    throw new Error(`[HTTP ${response.status}] ${data.error}`);
+                }
+                
+                if (data && typeof data === 'object') {
+                    this.repository = data.url;
+                } else {
+                    throw new Error(`[HTTP ${response.status}] ${response.message}`);
+                }
             }
-            
-            console.log(data)
-            
-            if (data && typeof data === 'object') {
-                this.issue.repository = data.url;
-            } else {
-                throw new Error(`[HTTP ${response.status}] ${response.message}`);
-            }
-            
+
             this.dataLoaded = true;
 
             this.$nextTick(() => {
                 this.hasUnsavedChanges = false;
             });
-            
         } catch (error) {
             console.error('Load error:', error);
             this.error = this.t('plugins.generic.codecheck.loadError') + ': ' + error.message;
         } finally {
             this.loading = false;
         }
+
+        console.log("Loaded updated github register issue data: ", this.issue, this.repository);
     },
     async viewIssue() {
-        if(this.issue.connected) {
+        if(this.isConnected) {
             window.open(this.issue.url);
         } else {
             await this.showErrorModal(this.t('plugins.generic.codecheck.github.issue.display.errorModal.title'), this.t('plugins.generic.codecheck.github.issue.display.errorModal.message'));

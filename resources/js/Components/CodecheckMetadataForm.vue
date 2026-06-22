@@ -583,6 +583,7 @@ export default {
         console.error('Load error:', error);
         this.error = this.t('plugins.generic.codecheck.loadError') + ': ' + error.message;
       } finally {
+        this.triggerRegisterIssueDisplayUpdateEvent();
         this.loading = false;
       }
     },
@@ -806,6 +807,18 @@ export default {
       }
     },
 
+    triggerRegisterIssueDisplayUpdateEvent() {
+      const pinia = pkp.registry._piniaInstance;
+      const workflowStore = pinia?._s?.get('workflow');
+
+      if (workflowStore?.codecheck) {
+        workflowStore.codecheck.registerIssueDisplayUpdateEvent = Date.now();
+        workflowStore.codecheck.certificateIdentifier = this.metadata.certificate;
+        workflowStore.codecheck.issue = this.certificateIdentifier.issue;
+        console.log("Workflow Store: ", workflowStore?.codecheck);
+      }
+    },
+
     async saveMetadata() {
       if (!this.validateForm()) {
         return;
@@ -862,6 +875,9 @@ export default {
         }
 
         this.hasUnsavedChanges = false;
+
+        this.triggerRegisterIssueDisplayUpdateEvent();
+
         this.showMessage(this.t('plugins.generic.codecheck.savedSuccessfully'), 'success');
       } catch (error) {
         console.error('Save error:', error);
@@ -1116,8 +1132,13 @@ export default {
               console.error('Error while linking an existing GitHub Issue: ', data.error);
             }
           } else {
-            this.showMessage(`${this.t('plugins.generic.codecheck.request.failed')}\nNo/ or wrong Reserve Identifier Mode specified.`, 'error');  
-            console.error(`${this.t('plugins.generic.codecheck.request.failed')}\nNo/ or wrong Reserve Identifier Mode specified.`);
+            this.showMessage(`${this.t('plugins.generic.codecheck.identifier.reserve.linkExistingIdentifier.fail.message')}\n${data.error}`, 'error');
+            console.error('Error while linking an existing GitHub Issue: ', data.error);
+          }
+
+          if(data.success) {
+            console.log("Certificate: ", this.metadata.certificate);
+            this.triggerRegisterIssueDisplayUpdateEvent();
           }
       } catch (error) {
           this.showMessage(`${this.t('plugins.generic.codecheck.request.failed')}\n${error}`, 'error');
@@ -1174,6 +1195,8 @@ export default {
       this.certificateIdentifier.isReserved = false;
       this.certificateIdentifier.isLinked = false;
       this.$emit('update', this.metadata.certificate);
+
+      this.triggerRegisterIssueDisplayUpdateEvent();
 
       close();
     },

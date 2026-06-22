@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import { createApp, reactive } from 'vue';
 import CodecheckManifestFiles from "./Components/CodecheckManifestFiles.vue";
 import CodecheckRepositoryList from "./Components/CodecheckRepositoryList.vue";
 import CodecheckReviewDisplay from "./Components/CodecheckReviewDisplay.vue";
@@ -18,6 +18,12 @@ const { t } = useLocalize();
 
 pkp.registry.storeExtend("workflow", (piniaContext) => {
   const workflowStore = piniaContext.store;
+
+  workflowStore.codecheck = reactive({
+    registerIssueDisplayUpdateEvent: null,
+    certificateIdentifier: null,
+    issue: null,
+  });
 
   workflowStore.extender.extendFn("getMenuItems", (menuItems, args) => {
     const submission = args?.submission;
@@ -100,7 +106,8 @@ pkp.registry.storeExtend("workflow", (piniaContext) => {
           component: "CodecheckGithubIssueDisplay",
           props: {
             submission: submission,
-            canEdit: true
+            certificateIdentifier: workflowStore?.codecheck?.certificateIdentifier,
+            issue: workflowStore?.codecheck?.issue,
           },
         },
       ];
