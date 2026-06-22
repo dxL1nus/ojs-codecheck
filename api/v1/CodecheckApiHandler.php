@@ -94,12 +94,12 @@ class CodecheckApiHandler
                 [
                     'route' => 'status',
                     'handler' => [$this, 'getCurrentStatus'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->readMetadata(),
                 ],
                 [
                     'route' => 'status/history',
                     'handler' => [$this, 'getStatusHistory'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->readMetadata(),
                 ],
             ],
             'POST' => [
@@ -136,12 +136,12 @@ class CodecheckApiHandler
                 [
                     'route' => 'status/update',
                     'handler' => [$this, 'updateStatus'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->editMetadata(),
                 ],
                 [
                     'route' => 'users/roles/validation',
                     'handler' => [$this, 'validateUserAccessRightsToStatus'],
-                    'roles' => $this->roles,
+                    'roles' => $roles->readMetadata(),
                 ],
             ],
         ];
