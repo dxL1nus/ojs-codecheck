@@ -401,6 +401,9 @@ msgstr "Complete"
 msgid "plugins.generic.codecheck.status.validation.failed"
 msgstr "The mandatory CODECHECK for this submission has a status ({$codecheckStatus}), which is not allowed for publication by the journal. Please get in touch with the codechecker(s) to resolve all errors, before this submission can be published!"
 
+msgid "plugins.generic.codecheck.status.validation.failed.noStatusSet"
+msgstr "The mandatory CODECHECK for this submission has no status (so it was not yet started), which is not allowed for publication by the journal. Please get in touch with the codechecker(s) to resolve all errors, before this submission can be published!"
+
 msgid "plugins.generic.codecheck.status.pending"
 msgstr "Pending"
 

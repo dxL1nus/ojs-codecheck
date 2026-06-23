@@ -211,7 +211,7 @@
 
         <div class="field-group">
           <div class="field-header">
-            <label class="field-label">{{ t('plugins.generic.codecheck.codecheckers.title') }} <span class="required">*</span></label>
+            <label class="field-label">{{ t('plugins.generic.codecheck.codecheckers.title') }}</label>
             <button type="button" class="pkpButton btn-add" @click="showCodecheckerModal">{{ t('plugins.generic.codecheck.codecheckers.add') }}</button>
           </div>
           

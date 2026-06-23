@@ -16,13 +16,16 @@ use PKP\plugins\Hook;
 use PKP\components\forms\FieldOptions;
 use APP\facades\Repo;
 use APP\plugins\generic\codecheck\api\v1\CodecheckApiHandler;
+use APP\plugins\generic\codecheck\api\v1\CurlApiClient;
 use PKP\core\JSONMessage;
 use APP\plugins\generic\codecheck\classes\Constants;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckStatusHandler;
 use APP\plugins\generic\codecheck\controllers\page\CodecheckPageHandler;
 use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleArray;
 use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
-use APP\core\Request;
+use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
+use PKP\core\Request;
+use \Github\Client;
 
 class CodecheckPlugin extends GenericPlugin
 {
@@ -89,15 +92,21 @@ class CodecheckPlugin extends GenericPlugin
         $publication = $args[1]; // sometimes passed by reference depending on version
         $request = Application::get()->getRequest();
         $context = $request->getContext();
+        $codecheckMetadataHandler = new CodecheckMetadataHandler($request, new Client(), new CurlApiClient());
+        $codecheckStatus = CodecheckStatusHandler::getCurrentStatusData($codecheckMetadataHandler->getSubmissionId());
 
-        error_log("[CODECHECK Plugin] Validating CODECHECK before publication!");
+        CodecheckLogger::debug("Validating CODECHECK before publication!");
 
-        $codecheckStatus = 'plugins.generic.codecheck.status.completed.partialReproduction';
         $codecheckStatusKeysSelected = $this->getSetting($context->getId(), Constants::CODECHECK_STATUS_KEYS_SELECTED);
 
-        if (!in_array($codecheckStatus, $codecheckStatusKeysSelected)) {
+        if (empty($codecheckStatus)) {
+            $errors[] = __('plugins.generic.codecheck.status.validation.failed.noStatusSet');
+            return false;
+        }
+
+        if (!in_array($codecheckStatus->status, $codecheckStatusKeysSelected)) {
             $errors[] = __('plugins.generic.codecheck.status.validation.failed', [
-                'codecheckStatus' => __($codecheckStatus)
+                'codecheckStatus' => __($codecheckStatus->status)
             ]);
             return false;
         }
