@@ -101,7 +101,7 @@ const dataLoaded = ref(false);
 
 onMounted(async () => {
   try {
-    if (!props.submission?.id) return;
+    if (!props.submission?.id) {dataLoaded.value = true; return};
 
     const submissionId = props.submission.id;
     const apiUrl = `${pkp.context.apiBaseUrl}codecheck/status?submissionId=${submissionId}`;
