@@ -4,9 +4,6 @@ namespace APP\plugins\generic\codecheck\api\v1;
 
 use APP\plugins\generic\codecheck\api\v1\JsonResponse;
 use APP\core\Request;
-use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
-use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
-use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterApiClient;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifierList;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifier;
@@ -16,21 +13,13 @@ use APP\plugins\generic\codecheck\classes\Workflow\CodecheckYamlValidator;
 use APP\plugins\generic\codecheck\classes\Log\CodecheckLogger;
 use APP\plugins\generic\codecheck\classes\Constants;
 use APP\plugins\generic\codecheck\CodecheckPlugin;
-
 use APP\facades\Repo;
 use \Github\Client;
 use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
 use APP\plugins\generic\codecheck\classes\Exceptions\RoleExceptions\RoleNotFoundException;
-use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
-use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckIssueLabels;
 use Exception;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-
-use function Clue\StreamFilter\append;
-use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
-use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
 use APP\plugins\generic\codecheck\classes\Workflow\CodecheckStatusHandler;
 use Illuminate\Support\Facades\DB;
 
