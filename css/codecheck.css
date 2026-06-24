@@ -281,6 +281,10 @@ textarea[name="dataAvailabilityStatement"] {
   white-space: nowrap;
 }
 
+#codecheckSettings #codecheckSettingsArea .section li {
+  list-style: none;
+}
+
 .settingsLabelRow {
   display: flex;
   align-items: center;

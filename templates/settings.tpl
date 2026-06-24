@@ -244,6 +244,27 @@
 			</div>
 		{/fbvFormSection}
 
+		{* Select which parts of the codecheck GitHub Issue are updated *}
+		{fbvFormSection
+			list=true
+		}
+			<div class="field-header">
+				<label class="pkp_form_label">Update the GitHub Issue</label>
+			</div>
+			<label class="description">Select which information should be updated in the GitHub Register Issue of the CODECHECK</label>
+			{fbvElement
+				type="checkbox"
+				id="updateTitle"
+				checked=$updateTitle
+				label="plugins.generic.codecheck.settings.updateIssue.title"
+			}
+			{fbvElement
+				type="checkbox"
+				id="updateBody"
+				checked=$updateBody
+				label="plugins.generic.codecheck.settings.updateIssue.body"
+			}
+		{/fbvFormSection}
 		{* TODO: Add more settings in future development *}
 		{* - ORCID integration settings *}
 		{* - Email template settings *}
