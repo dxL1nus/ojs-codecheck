@@ -51,7 +51,7 @@ msgid "plugins.generic.codecheck.settings.enableCodecheck"
 msgstr "Enable CODECHECK for this journal"
 
 msgid "plugins.generic.codecheck.settings.mode"
-msgstr "Select the CODECHECK mode used during the submission of a paper"
+msgstr "Select the CODECHECK mode for submissions"
 
 msgid "plugins.generic.codecheck.settings.mode.opt.in"
 msgstr "opt-in by the author"
@@ -114,7 +114,7 @@ msgid "plugins.generic.codecheck.settings.updateIssue.body"
 msgstr "Update the Issue Description (containing the article, codechecker and repository information)"
 
 msgid "plugins.generic.codecheck.settings.status"
-msgstr "What status must a check have for a paper to proceed with the publication?"
+msgstr "What status must a check have for a submission to proceed with the publication?"
 
 msgid "plugins.generic.codecheck.settings.status.description"
 msgstr "Please select the minimum statuses required for a CODECHECK, before a submission is allowed to be published"
