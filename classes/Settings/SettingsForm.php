@@ -125,6 +125,14 @@ class SettingsForm extends Form
             ) ?? []
         );
 
+        $this->setData(
+            Constants::CODECHECK_STATUS_KEYS_SELECTED,
+            $this->plugin->getSetting(
+                $context->getId(),
+                Constants::CODECHECK_STATUS_KEYS_SELECTED
+            ) ?? []
+        );
+
         // Default to true — show the dashboard column unless explicitly disabled
         $showDashboardColumn = $this->plugin->getSetting(
             $context->getId(),
@@ -166,6 +174,9 @@ class SettingsForm extends Form
             Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE,
             Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY,
             Constants::CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_FIELDS,
+            Constants::CODECHECK_STATUS,
+            Constants::CODECHECK_STATUSES_SELECTED,
+            Constants::CODECHECK_STATUS_KEYS_SELECTED,
         ]);
 
         parent::readInputData();
@@ -183,7 +194,7 @@ class SettingsForm extends Form
         $templateMgr = TemplateManager::getManager($request);
         $templateMgr->assign('pluginName', $this->plugin->getName());
         $templateMgr->assign(
-            'githubCustomLabels',
+            Constants::CODECHECK_GITHUB_CUSTOM_LABELS,
             $this->getData(Constants::CODECHECK_GITHUB_CUSTOM_LABELS) ?? []
         );
         $templateMgr->assign('codecheckModes', [
@@ -191,10 +202,17 @@ class SettingsForm extends Form
             'opt-out'   => __('plugins.generic.codecheck.settings.mode.opt.out'),
             'mandatory' => __('plugins.generic.codecheck.settings.mode.mandatory'),
         ]);
+        
         $templateMgr->assign(
             'showDashboardColumn',
             $this->getData(Constants::CODECHECK_SHOW_DASHBOARD_COLUMN)
         );
+
+        $templateMgr->assign(
+            Constants::CODECHECK_STATUSES_SELECTED,
+            (array) $this->getData(Constants::CODECHECK_STATUSES_SELECTED) ?? []
+        );
+        $templateMgr->assign('codecheckStatuses', Constants::CODECHECK_STATUSES);
 
         return parent::fetch($request, $template, $display);
     }
@@ -264,6 +282,12 @@ class SettingsForm extends Form
                 (array) $this->getData(Constants::CODECHECK_GITHUB_CUSTOM_LABELS),
                 fn ($label) => !empty($label)
             ))
+        );
+
+        $this->plugin->updateSetting(
+            $context->getId(),
+            Constants::CODECHECK_STATUS_KEYS_SELECTED,
+            (array) $this->getData(Constants::CODECHECK_STATUS_KEYS_SELECTED)
         );
 
         $this->plugin->updateSetting(

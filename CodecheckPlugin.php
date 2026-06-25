@@ -16,12 +16,16 @@ use PKP\plugins\Hook;
 use PKP\components\forms\FieldOptions;
 use APP\facades\Repo;
 use APP\plugins\generic\codecheck\api\v1\CodecheckApiHandler;
+use APP\plugins\generic\codecheck\api\v1\CurlApiClient;
 use PKP\core\JSONMessage;
 use APP\plugins\generic\codecheck\classes\Constants;
+use APP\plugins\generic\codecheck\classes\Workflow\CodecheckStatusHandler;
 use APP\plugins\generic\codecheck\controllers\page\CodecheckPageHandler;
 use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleArray;
 use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
-use APP\core\Request;
+use APP\plugins\generic\codecheck\classes\Workflow\CodecheckMetadataHandler;
+use PKP\core\Request;
+use \Github\Client;
 
 class CodecheckPlugin extends GenericPlugin
 {
@@ -71,9 +75,59 @@ class CodecheckPlugin extends GenericPlugin
             Hook::add('Template::SubmissionWizard::Section::Review', function($hookName, $params) use ($codecheckWizard) {
                 return $codecheckWizard->addToSubmissionWizardReviewTemplate($hookName, $params);
             });
+            
+            // Test if we can hook into the publication to block it if codecheck failed
+            Hook::add('Publication::validatePublish', $this->validateCodecheckStatus(...));
+
+            // Add Localizations to Codecheck Status Preview
+            Hook::add('TemplateManager::display', $this->addCodecheckStatusLocalizations(...));
         }
 
         return $success;
+    }
+
+    public function validateCodecheckStatus(string $hookName, array $args): bool
+    {
+        $errors = &$args[0];
+        $publication = $args[1]; // sometimes passed by reference depending on version
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
+        $codecheckMetadataHandler = new CodecheckMetadataHandler($request, new Client(), new CurlApiClient());
+        $codecheckStatus = CodecheckStatusHandler::getCurrentStatusData($codecheckMetadataHandler->getSubmissionId());
+
+        CodecheckLogger::debug("Validating CODECHECK before publication!");
+
+        $codecheckStatusKeysSelected = $this->getSetting($context->getId(), Constants::CODECHECK_STATUS_KEYS_SELECTED);
+
+        if (empty($codecheckStatus)) {
+            $errors[] = __('plugins.generic.codecheck.status.validation.failed.noStatusSet');
+            return false;
+        }
+
+        if (!in_array($codecheckStatus->status, $codecheckStatusKeysSelected)) {
+            $errors[] = __('plugins.generic.codecheck.status.validation.failed', [
+                'codecheckStatus' => __($codecheckStatus->status)
+            ]);
+            return false;
+        }
+
+        return true;
+    }
+
+    public function addCodecheckStatusLocalizations($hookName, $args) {
+        $templateMgr = $args[0];
+        $templateMgr->addJavaScript(
+            'codecheck-locale-status',
+            'pkp.localeKeys = pkp.localeKeys || {};' .
+            'Object.assign(pkp.localeKeys, ' . json_encode(
+                array_combine(
+                    Constants::CODECHECK_STATUSES,
+                    array_map(fn($status) => __($status), Constants::CODECHECK_STATUSES)
+                )
+            ) . ');',
+            ['inline' => true, 'contexts' => ['backend']]
+        );
+        return false;
     }
     
     /**
@@ -413,9 +467,10 @@ class CodecheckPlugin extends GenericPlugin
         $result = parent::setEnabled($enabled, $contextId);
         
         if ($enabled) {
-            $migration = new CodecheckSchemaMigration();
-            $migration->up();
-            $migration->issueLabelsUp();
+            $this->migration = new CodecheckSchemaMigration();
+            $this->migration->up();
+            $this->migration->issueLabelsUp();
+            $this->migration->codecheckStatusUp();
         }
         
         return $result;

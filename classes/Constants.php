@@ -22,6 +22,31 @@ class Constants
      * Basic plugin setting
      */
     public const SETTING_ENABLE_CODECHECK = 'enableCodecheck';
+
+    /**
+     * The possible Codecheck Statuses
+     */
+    public const CODECHECK_STATUS_NEEDS_CODECHECKER = 'plugins.generic.codecheck.status.needsCodechecker';
+    public const CODECHECK_STATUS_ASSIGNED_CODECHECKER = 'plugins.generic.codecheck.status.assignedCodechecker';
+    public const CODECHECK_STATUS_STALLED_AUTHOR = 'plugins.generic.codecheck.status.stalled.author';
+    public const CODECHECK_STATUS_STALLED_CODECHECKER = 'plugins.generic.codecheck.status.stalled.codechecker';
+    public const CODECHECK_STATUS_COMPLETED_UNSUCCESSFUL = 'plugins.generic.codecheck.status.completed.unsuccessful';
+    public const CODECHECK_STATUS_COMPLETED_PARTIAL_REPRODUCTION = 'plugins.generic.codecheck.status.completed.partialReproduction';
+    public const CODECHECK_STATUS_COMPLETED_FULL_REPRODUCTION = 'plugins.generic.codecheck.status.completed.fullReproduction';
+    public const CODECHECK_STATUS_PUBLISHED_PARTIAL_REPRODUCTION = 'plugins.generic.codecheck.status.publishedCertificate.partialReproduction';
+    public const CODECHECK_STATUS_PUBLISHED_FULL_REPRODUCTION = 'plugins.generic.codecheck.status.publishedCertificate.fullReproduction';
+
+    public const CODECHECK_STATUSES = [
+        Constants::CODECHECK_STATUS_NEEDS_CODECHECKER,
+        Constants::CODECHECK_STATUS_ASSIGNED_CODECHECKER,
+        Constants::CODECHECK_STATUS_STALLED_AUTHOR,
+        Constants::CODECHECK_STATUS_STALLED_CODECHECKER,
+        Constants::CODECHECK_STATUS_COMPLETED_UNSUCCESSFUL,
+        Constants::CODECHECK_STATUS_COMPLETED_PARTIAL_REPRODUCTION,
+        Constants::CODECHECK_STATUS_COMPLETED_FULL_REPRODUCTION,
+        Constants::CODECHECK_STATUS_PUBLISHED_PARTIAL_REPRODUCTION,
+        Constants::CODECHECK_STATUS_PUBLISHED_FULL_REPRODUCTION,
+    ];
     
     /**
      * Plugin settings keys - NEW ADDITIONS
@@ -40,4 +65,8 @@ class Constants
     public const CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_FIELDS = 'codecheckGithubUpdateFields';
     public const CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_TITLE = 'updateTitle';
     public const CODECHECK_GITHUB_REGISTER_ISSUE_UPDATE_BODY = 'updateBody';
+    # Codecheck Status
+    public const CODECHECK_STATUS = 'codecheckStatus';
+    public const CODECHECK_STATUSES_SELECTED = 'codecheckStatusesSelected';
+    public const CODECHECK_STATUS_KEYS_SELECTED = 'codecheckStatusKeysSelected';
 }

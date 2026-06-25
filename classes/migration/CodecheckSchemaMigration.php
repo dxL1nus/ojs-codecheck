@@ -44,6 +44,22 @@ class CodecheckSchemaMigration extends Migration
             });
         }
     }
+    
+    public function codecheckStatusUp(): void
+    {
+        if (!Schema::hasTable('codecheck_status')) {
+            Schema::create('codecheck_status', function (Blueprint $table) {
+                $table->bigInteger('status_id')->autoIncrement()->primary();
+                $table->bigInteger('submission_id');
+                $table->foreign('submission_id', 'codecheck_status_metadata')->references('submission_id')->on('codecheck_metadata')->onDelete('cascade');
+                $table->string('status', 300);
+                $table->timestamp('timestamp');
+                $table->bigInteger('user_id');
+                $table->timestamps();
+                $table->index('status_id');
+            });
+        }
+    }
 
     private function createCodecheckGenres(): void
     {
@@ -77,6 +93,7 @@ class CodecheckSchemaMigration extends Migration
 
     public function down(): void
     {
+        Schema::dropIfExists('codecheck_status');
         Schema::dropIfExists('codecheck_metadata');
     }
 

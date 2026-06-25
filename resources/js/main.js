@@ -2,8 +2,9 @@ import { createApp, reactive } from 'vue';
 import CodecheckManifestFiles from "./Components/CodecheckManifestFiles.vue";
 import CodecheckRepositoryList from "./Components/CodecheckRepositoryList.vue";
 import CodecheckReviewDisplay from "./Components/CodecheckReviewDisplay.vue";
-import CodecheckMetadataForm from "./Components/CodecheckMetadataForm.vue";
 import CodecheckDataAndSoftwareAvailability from "./Components/CodecheckDataAndSoftwareAvailability.vue";
+import CodecheckMetadataForm from './Components/CodecheckMetadataForm.vue';
+import CodecheckStatusForm from './Components/CodecheckStatusForm.vue';
 import CodecheckGithubIssueDisplay from "./Components/CodecheckGithubIssueDisplay.vue";
 
 pkp.registry.registerComponent("CodecheckReviewDisplay", CodecheckReviewDisplay);
@@ -11,6 +12,7 @@ pkp.registry.registerComponent("CodecheckMetadataForm", CodecheckMetadataForm);
 pkp.registry.registerComponent("CodecheckManifestFiles", CodecheckManifestFiles);
 pkp.registry.registerComponent("CodecheckRepositoryList", CodecheckRepositoryList);
 pkp.registry.registerComponent("CodecheckDataAndSoftwareAvailability", CodecheckDataAndSoftwareAvailability);
+pkp.registry.registerComponent("CodecheckStatusForm", CodecheckStatusForm);
 pkp.registry.registerComponent("CodecheckGithubIssueDisplay", CodecheckGithubIssueDisplay);
 
 const { useLocalize } = pkp.modules.useLocalize;
@@ -23,6 +25,7 @@ pkp.registry.storeExtend("workflow", (piniaContext) => {
     registerIssueDisplayUpdateEvent: null,
     certificateIdentifier: null,
     issue: null,
+    statusUpdateEvent: null,
   });
 
   workflowStore.extender.extendFn("getMenuItems", (menuItems, args) => {
@@ -102,6 +105,13 @@ pkp.registry.storeExtend("workflow", (piniaContext) => {
       args?.selectedMenuState?.stageId === 999
     ) {
       return [
+        {
+          component: "CodecheckStatusForm",
+          props: {
+            submission: submission,
+            canEdit: true
+          },
+        },
         {
           component: "CodecheckGithubIssueDisplay",
           props: {

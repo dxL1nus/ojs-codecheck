@@ -211,7 +211,7 @@
 
         <div class="field-group">
           <div class="field-header">
-            <label class="field-label">{{ t('plugins.generic.codecheck.codecheckers.title') }} <span class="required">*</span></label>
+            <label class="field-label">{{ t('plugins.generic.codecheck.codecheckers.title') }}</label>
             <button type="button" class="pkpButton btn-add" @click="showCodecheckerModal">{{ t('plugins.generic.codecheck.codecheckers.add') }}</button>
           </div>
           
@@ -819,6 +819,15 @@ export default {
       }
     },
 
+    triggerCodecheckStatusUpdateEvent() {
+      const pinia = pkp.registry._piniaInstance;
+      const workflowStore = pinia?._s?.get('workflow');
+
+      if (workflowStore?.codecheck) {
+        workflowStore.codecheck.statusUpdateEvent = Date.now();
+      }
+    },
+
     async saveMetadata() {
       if (!this.validateForm()) {
         return;
@@ -876,6 +885,7 @@ export default {
 
         this.hasUnsavedChanges = false;
 
+        this.triggerCodecheckStatusUpdateEvent();
         this.triggerRegisterIssueDisplayUpdateEvent();
 
         this.showMessage(this.t('plugins.generic.codecheck.savedSuccessfully'), 'success');
@@ -1254,10 +1264,10 @@ export default {
         this.showMessage(this.t('plugins.generic.codecheck.validation.manifestRequired'), 'error');
         return false;
       }
-      if (this.metadata.codecheckers.length === 0) {
+      /*if (this.metadata.codecheckers.length === 0) {
         this.showMessage(this.t('plugins.generic.codecheck.validation.codecheckersRequired'), 'error');
         return false;
-      }
+      }*/
       if (!this.metadata.certificate) {
         this.showMessage(this.t('plugins.generic.codecheck.validation.certificateRequired'), 'error');
         return false;
@@ -1541,11 +1551,12 @@ export default {
 
 .codecheck-metadata-form .field-group {
   margin-bottom: 2rem;
+  background-color: #fff;
 }
 
 .codecheck-metadata-form .form-details .field-group {
-    border: 2px solid #ccc;
-    padding: 1.5rem 1.5rem;
+  border: 2px solid #ccc;
+  padding: 1.5rem 1.5rem;
 }
 
 .codecheck-metadata-form .field-header {
@@ -2142,5 +2153,9 @@ fieldset:disabled .certificate-identifier-select .dropdown-content {
   font-style: italic;
   margin-left: 5px;
   color: inherit;
+}
+
+.filePanel__header {
+  background-color: #f3f3f3;
 }
 </style>

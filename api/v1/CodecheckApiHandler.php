@@ -4,9 +4,6 @@ namespace APP\plugins\generic\codecheck\api\v1;
 
 use APP\plugins\generic\codecheck\api\v1\JsonResponse;
 use APP\core\Request;
-use APP\plugins\generic\codecheck\classes\Exceptions\ApiCreateException;
-use APP\plugins\generic\codecheck\classes\Exceptions\ApiFetchException;
-use APP\plugins\generic\codecheck\classes\Exceptions\NoMatchingIssuesFoundException;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckGithubRegisterApiClient;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifierList;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CertificateIdentifier;
@@ -16,17 +13,15 @@ use APP\plugins\generic\codecheck\classes\Workflow\CodecheckYamlValidator;
 use APP\plugins\generic\codecheck\classes\Log\CodecheckLogger;
 use APP\plugins\generic\codecheck\classes\Constants;
 use APP\plugins\generic\codecheck\CodecheckPlugin;
-
 use APP\facades\Repo;
 use \Github\Client;
 use APP\plugins\generic\codecheck\classes\CodecheckRoles\CodecheckRoleManager;
 use APP\plugins\generic\codecheck\classes\Exceptions\RoleExceptions\RoleNotFoundException;
-use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlInitException;
-use APP\plugins\generic\codecheck\classes\Exceptions\CurlExceptions\CurlReadException;
 use APP\plugins\generic\codecheck\classes\CodecheckRegister\CodecheckIssueLabels;
 use Exception;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use APP\plugins\generic\codecheck\classes\Workflow\CodecheckStatusHandler;
+use Illuminate\Support\Facades\DB;
 
 class CodecheckApiHandler
 {
@@ -85,6 +80,16 @@ class CodecheckApiHandler
                     'handler' => [$this, 'getGithubRegisterRepositoryUrl'],
                     'roles' => $roles->readMetadata(),
                 ],
+                [
+                    'route' => 'status',
+                    'handler' => [$this, 'getCurrentStatus'],
+                    'roles' => $roles->readMetadata(),
+                ],
+                [
+                    'route' => 'status/history',
+                    'handler' => [$this, 'getStatusHistory'],
+                    'roles' => $roles->readMetadata(),
+                ],
             ],
             'POST' => [
                 [
@@ -115,6 +120,16 @@ class CodecheckApiHandler
                 [
                     'route' => 'yaml/validate',
                     'handler' => [$this, 'validateYamlStructure'],
+                    'roles' => $roles->readMetadata(),
+                ],
+                [
+                    'route' => 'status/update',
+                    'handler' => [$this, 'updateStatus'],
+                    'roles' => $roles->editMetadata(),
+                ],
+                [
+                    'route' => 'users/roles/validation',
+                    'handler' => [$this, 'validateUserAccessRightsToStatus'],
                     'roles' => $roles->readMetadata(),
                 ],
             ],
@@ -258,6 +273,9 @@ class CodecheckApiHandler
         $context = $this->request->getContext();
         $githubCustomLabels = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_GITHUB_CUSTOM_LABELS);
         $codecheckIssueLabels->addLabelArray($githubCustomLabels);
+
+        $codecheckStatuses = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_STATUS_KEYS_SELECTED);
+        error_log(print_r($codecheckStatuses, true));
 
         // Serve the getCodecheckIssueLabels API route
         JsonResponse::staticResponse([
@@ -927,6 +945,143 @@ class CodecheckApiHandler
 
         JsonResponse::staticResponse([
             'success' => true,
+        ], 200);
+    }
+
+    public function getCurrentStatus(): void
+    {
+        $submissionId = (int) $this->codecheckMetadataHandler->getSubmissionId();
+
+        $statusRecord = CodecheckStatusHandler::getCurrentStatusData($submissionId);
+
+        if($statusRecord == null) {
+            JsonResponse::staticResponse([
+                'success' => false,
+                'error' => "There doesn't exist any Status in the OJS Databse for this submission Id yet.",
+                'statusRecord' => null,
+                'allStatuses' => Constants::CODECHECK_STATUSES,
+            ], 500);
+        }
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'statusRecord' => $statusRecord,
+            'allStatuses' => Constants::CODECHECK_STATUSES,
+        ], 200);
+    }
+
+    public function getStatusHistory(): void
+    {
+        $submissionId = (int) $this->codecheckMetadataHandler->getSubmissionId();
+
+        $statusHistory = CodecheckStatusHandler::getStatusDataHistory($submissionId);
+
+        if($statusHistory == null) {
+            JsonResponse::staticResponse([
+                'success' => false,
+                'statusHistory' => $statusHistory,
+            ], 400);
+        }
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'statusHistory' => $statusHistory,
+        ], 200);
+    }
+
+    public function updateStatus(): void
+    {
+        $submissionId = (int) $this->codecheckMetadataHandler->getSubmissionId();
+
+        $postParams = json_decode(file_get_contents('php://input'), true);
+        $status = $postParams["status"];
+        $userId = $postParams["userId"];
+
+        if(!is_string($status) || !is_int($userId)) {
+            JsonResponse::staticResponse([
+                'success' => false,
+                'statusRecord' => [
+                    'status' => $status,
+                    'userId' => $userId
+                ],
+                'allStatuses' => Constants::CODECHECK_STATUSES,
+                'error' => 'Bad Request: Please provide a Status form of string and a User ID in the form of int.'
+            ], 400);
+        }
+
+        if($userId == -1) {
+            $submissionMetadata = $this->codecheckMetadataHandler->getMetadata($this->request, $submissionId);
+            if(array_key_exists("error",$submissionMetadata)) {
+                JsonResponse::staticResponse([
+                    'success' => false,
+                    'error' => $submissionMetadata["error"],
+                    'allStatuses' => Constants::CODECHECK_STATUSES,
+                ], 400);
+            }
+            $statusUpdate = CodecheckStatusHandler::automaticStatusUpdate($submissionMetadata);
+
+            if($statusUpdate == null) {
+                JsonResponse::staticResponse([
+                    'success' => false,
+                    'statusRecord' => $statusUpdate,
+                    'allStatuses' => Constants::CODECHECK_STATUSES,
+                    'error' => "Status doesn't need to be automatically updated."
+                ], 200);
+            } else {
+                JsonResponse::staticResponse([
+                    'success' => true,
+                    'statusRecord' => $statusUpdate,
+                    'allStatuses' => Constants::CODECHECK_STATUSES,
+                ], 200);
+            }
+        }
+
+        $statusUpdate = CodecheckStatusHandler::updateStatus($submissionId, $status, $userId);
+
+        if($statusUpdate == false) {
+            JsonResponse::staticResponse([
+                'success' => true,
+                'statusRecord' => [
+                    'status' => $status,
+                    'userId' => $userId
+                ],
+                'allStatuses' => Constants::CODECHECK_STATUSES,
+                'error' => "Inserting into the CODECHECK Status Database went wrong."
+            ], 500);
+        }
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'statusRecord' => $statusUpdate,
+            'allStatuses' => Constants::CODECHECK_STATUSES,
+        ], 200);
+    }
+
+    public function validateUserAccessRightsToStatus(): void
+    {
+        $postParams = json_decode(file_get_contents('php://input'), true);
+        $user = $postParams["user"];
+
+        if(!is_array($user["roles"])) {
+            JsonResponse::staticResponse([
+                'success' => false,
+                'error' => 'Bad Request: Please provide the current User in your request.'
+            ], 400);
+        }
+
+        $userRoles = $user["roles"];
+        $allowedToAccess = false;
+
+        foreach ($userRoles as $userRole) {
+            if($userRole == 16) {
+                $allowedToAccess = true;
+                break;
+            }
+        }
+
+        JsonResponse::staticResponse([
+            'success' => true,
+            'userAllowedToAccess' => $allowedToAccess,
         ], 200);
     }
 }
