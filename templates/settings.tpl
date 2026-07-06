@@ -203,7 +203,11 @@
 			<div class="field-header">
 				<label class="pkp_form_label">{translate key="plugins.generic.codecheck.settings.github.registerRepository"}</label>
 			</div>
-			<label class="description">{translate key="plugins.generic.codecheck.settings.github.registerRepository.description"}</label>
+			<label class="description">
+				{translate key="plugins.generic.codecheck.settings.github.registerRepository.description.defaultRepositoryLink"}
+				<br>
+				{translate key="plugins.generic.codecheck.settings.github.registerRepository.description.idAssignedLabelShouldExist"}
+			</label>
 			<div class="pkp_form_input_with_button_row">
 				<div id="githubRegisterInputSection">
 					<div>https://github.com/</div>

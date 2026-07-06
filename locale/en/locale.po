@@ -80,8 +80,11 @@ msgstr "Provide your GitHub Personal Access Token (classic), so the CODECHECK pl
 msgid "plugins.generic.codecheck.settings.github.registerRepository"
 msgstr "GitHub Repository used as the CODECHECK register"
 
-msgid "plugins.generic.codecheck.settings.github.registerRepository.description"
-msgstr "default: https://github.com/codecheckers/register"
+msgid "plugins.generic.codecheck.settings.github.registerRepository.description.defaultRepositoryLink"
+msgstr "Default: https://github.com/codecheckers/register"
+
+msgid "plugins.generic.codecheck.settings.github.registerRepository.description.idAssignedLabelShouldExist"
+msgstr "The label: “id assigned” should exist in the repository!"
 
 msgid "plugins.generic.codecheck.settings.github.labels"
 msgstr "GitHub Register Labels"
