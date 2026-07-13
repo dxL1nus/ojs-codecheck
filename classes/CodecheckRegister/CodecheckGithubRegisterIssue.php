@@ -29,7 +29,6 @@ class CodecheckGithubRegisterIssue {
         $this->repositoryOwner = $repositoryOwner;
         $this->repository = $repository;
         $this->submissionID = $submissionID;
-        $authorString = empty($authorString) ? 'New CODECHECK' : $authorString;
         $this->title = $this->createTitleMarkdown($authorString, $certificateIdentifier);
         $this->jsonEncodedCodecheckMetadata = $this->createJsonEncodedCodecheckMetadataMarkdown($authorString, $certificateIdentifier, $journalName, $submissionID, $codecheckers, $repositories);
         $this->body = $this->createBodyMarkdown($paperTitle, $journalName, $repositories) . "\n" . $this->jsonEncodedCodecheckMetadata;

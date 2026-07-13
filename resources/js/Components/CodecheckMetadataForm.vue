@@ -1075,7 +1075,9 @@ export default {
 
       const authorString = this.submissionData.authors.length > 1
         ? this.submissionData.authors[0].name + ' et al.'
-        : this.submissionData.authors[0].name;
+        : this.submissionData.authors.length === 1 
+          ? this.submissionData.authors[0].name
+          : this.t('plugins.generic.codecheck.identifier.reserve.newCodecheck');
 
       const submissionId = this.submission.id;
       let apiUrl = pkp.context.apiBaseUrl + 'codecheck';

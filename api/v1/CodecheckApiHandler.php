@@ -296,7 +296,7 @@ class CodecheckApiHandler
         ], 200);
     }
 
-    private function getAuthorStringBasedOnAuthorAnonymity(): string|null
+    private function getAuthorStringBasedOnAuthorAnonymity(): string
     {
         $postParams = json_decode(file_get_contents('php://input'), true);
         $submissionData = $postParams["submission"];
@@ -305,9 +305,9 @@ class CodecheckApiHandler
         $context = $this->request->getContext();
         $isAuthorStringEnabled = $this->plugin->getSetting($context->getId(), Constants::CODECHECK_AUTHOR_ANONYMITY);
 
-        // if Authors should be Anonymous/ if no Author string was given, set it to null
+        // if Authors should be Anonymous/ if no Author string was given, set it to 'New Codecheck'
         if(!$isAuthorStringEnabled || !is_string($authorString)) {
-            $authorString = null;
+            $authorString = __('plugins.generic.codecheck.identifier.reserve.newCodecheck');
         }
 
         return $authorString;

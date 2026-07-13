@@ -308,6 +308,9 @@ msgstr "Save Identifier"
 msgid "plugins.generic.codecheck.identifier.update.error.message"
 msgstr "Error while updating the GitHub Issue"
 
+msgid "plugins.generic.codecheck.identifier.reserve.newCodecheck"
+msgstr "New CODECHECK"
+
 msgid "plugins.generic.codecheck.identifier.reserve.linkExistingIdentifier"
 msgstr "Link Existing Identifier"
 

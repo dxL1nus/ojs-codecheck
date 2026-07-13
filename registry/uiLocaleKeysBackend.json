@@ -58,6 +58,7 @@
   "plugins.generic.codecheck.identifier.reserve.linkExistingIdentifier",
   "plugins.generic.codecheck.identifier.reserve.linkExistingIdentifier.fail.message",
   "plugins.generic.codecheck.identifier.reserve.linkExistingIdentifier.success.message",
+  "plugins.generic.codecheck.identifier.reserve.newCodecheck",
   "plugins.generic.codecheck.identifier.reserve.success.message",
   "plugins.generic.codecheck.identifier.reserve.withApi",
   "plugins.generic.codecheck.identifier.reserve.withNewIssueUrl",
