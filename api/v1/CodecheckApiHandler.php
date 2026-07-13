@@ -440,6 +440,8 @@ class CodecheckApiHandler
 
         $authorString = $this->getAuthorStringBasedOnAuthorAnonymity();
 
+        CodecheckLogger::debug("Calling Reserve Identifier for: " . $githubRegisterOrganization . "/" . $githubRegisterRepository);
+
         if (!in_array($reserveIdentifierMode, ['api', 'newIssueUrl', 'linkExistingIdentifier'])) {
             JsonResponse::staticResponse([
                 'success' => false,
